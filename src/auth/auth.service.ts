@@ -6,6 +6,7 @@ import { Model } from 'mongoose';
 import { User } from 'src/schemas/User.schema';
 import * as jwt from 'jsonwebtoken';
 import { Admin } from 'src/schemas/admin.schema';
+import { error } from 'console';
 const nodemailer = require('nodemailer');
 
 @Injectable()
@@ -22,11 +23,14 @@ export class AuthService {
   async sendOTP(data: { email: string }) {
     try {
       // Generate OTP
-      const OTP = this.generateOtp2(process.env.DEFAULT_SECRET, data.email);
+      let OTP: string = this.generateOtp2(
+        process.env.DEFAULT_SECRET,
+        data.email,
+      );
 
       // Send OTP via email
       await this.sendEmail(data.email, OTP);
-
+      console.log(OTP);
       return {
         status: true,
         message: `OTP sent: ${OTP} `,
@@ -61,7 +65,7 @@ export class AuthService {
   async verifyOTP(data: { email: string; otp: string }) {
     try {
       const validUser = this.verifyOtp(
-        process.env.OTP_SECRETS,
+        process.env.DEFAULT_SECRET,
         data.email,
         data.otp,
       );
@@ -90,7 +94,7 @@ export class AuthService {
       secret: secret + email, // The same secret used during generation
       encoding: 'base32',
       token: token, // The OTP entered by the user
-      step: 600, // Ensure step matches what was used during generation
+      step: 180, // Ensure step matches what was used during generation
       window: 1, // Allow one window of deviation (i.e., allow token to be valid within 2 time steps)
     });
 
@@ -101,8 +105,8 @@ export class AuthService {
     const otp = speakeasy.totp({
       secret: secret + email,
       encoding: 'base32',
-      step: 600,
-      digits: 4,
+      step: 180,
+      digits: 6,
     });
     return otp;
   }

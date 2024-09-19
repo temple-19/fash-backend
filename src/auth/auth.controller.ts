@@ -13,7 +13,7 @@ export class autheObj {
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Get('validate')
+  @Post('validate')
   verify(@Body() data: autheoObj) {
     return this.authService.verifyOTP(data);
   }
@@ -23,7 +23,7 @@ export class AuthController {
     return this.authService.sendOTP(data);
   }
 
-  @Get('refresh')
+  @Post('refresh')
   resendOTP(@Body() data: autheObj) {
     return this.authService.resendOTP(data);
   }
