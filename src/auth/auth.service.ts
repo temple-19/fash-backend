@@ -5,11 +5,12 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User } from 'src/schemas/User.schema';
 import * as jwt from 'jsonwebtoken';
+import { Admin } from 'src/schemas/admin.schema';
 const nodemailer = require('nodemailer');
 
 @Injectable()
 export class AuthService {
-  constructor(@InjectModel(User.name) private userModel) {}
+  constructor(@InjectModel(Admin.name) private adminModel) {}
 
   saltOrRounds = Number(process.env.HASH_SALT);
 
@@ -28,7 +29,7 @@ export class AuthService {
 
       return {
         status: true,
-        message: 'OTP sent: ',
+        message: `OTP sent: ${OTP} `,
       };
     } catch (error) {
       return {

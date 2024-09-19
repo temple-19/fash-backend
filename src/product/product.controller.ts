@@ -21,12 +21,12 @@ export class ProductController {
   @UsePipes(new ValidationPipe())
   createUser(@Body() createProductDto) {
     console.log(createProductDto);
-    return this.productService.createUser(createProductDto);
+    return this.productService.createProduct(createProductDto);
   }
 
   @Get()
   getUsers() {
-    return this.productService.getsUsers();
+    return this.productService.getProducts();
   }
 
   // users/:id
@@ -34,7 +34,7 @@ export class ProductController {
   async getUserById(@Param('id') id: string) {
     const isValid = mongoose.Types.ObjectId.isValid(id);
     if (!isValid) throw new HttpException('User not found', 404);
-    const findUser = await this.productService.getUserById(id);
+    const findUser = await this.productService.getProductById(id);
     if (!findUser) throw new HttpException('User not found', 404);
     return findUser;
   }
@@ -44,7 +44,7 @@ export class ProductController {
   async updateUser(@Param('id') id: string, @Body() updateProductDto) {
     const isValid = mongoose.Types.ObjectId.isValid(id);
     if (!isValid) throw new HttpException('Invalid ID', 400);
-    const updatedUser = await this.productService.updateUser(
+    const updatedUser = await this.productService.updateProduct(
       id,
       updateProductDto,
     );
@@ -56,7 +56,7 @@ export class ProductController {
   async deleteUser(@Param('id') id: string) {
     const isValid = mongoose.Types.ObjectId.isValid(id);
     if (!isValid) throw new HttpException('Invalid ID', 400);
-    const deletedUser = await this.productService.deleteUser(id);
+    const deletedUser = await this.productService.deleteProduct(id);
     if (!deletedUser) throw new HttpException('User Not Found', 404);
     return;
   }

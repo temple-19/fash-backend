@@ -9,7 +9,7 @@ export class Admin {
   Name?: string;
 
   @Prop({ required: false })
-  avatarUrl?: string;
+  password: string;
 }
 
 export const AdminSchema = SchemaFactory.createForClass(Admin);

@@ -3,6 +3,8 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { Admin, AdminSchema } from 'src/schemas/admin.schema';
 import { AdminService } from './admin.service';
 import { AdminController } from './admin.controller';
+import { AuthService } from 'src/auth/auth.service';
+import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
   imports: [
@@ -11,11 +13,8 @@ import { AdminController } from './admin.controller';
         name: Admin.name,
         schema: AdminSchema,
       },
-      // {
-      //   name: UserSettings.name,
-      //   schema: UserSettingsSchema,
-      // },
     ]),
+    AuthModule,
   ],
   providers: [AdminService],
   controllers: [AdminController],

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 // import { AuthGuard } from './auth.guard';
 
@@ -9,21 +9,21 @@ export class autheoObj {
 export class autheObj {
   email: string;
 }
-@Controller('Auth')
+@Controller('au')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Get('verifyOtp')
+  @Get('validate')
   verify(@Body() data: autheoObj) {
     return this.authService.verifyOTP(data);
   }
 
-  @Get('sendOtp')
+  @Post('trigger')
   sendOTP(@Body() data: autheObj) {
     return this.authService.sendOTP(data);
   }
 
-  @Get('resendOtp')
+  @Get('refresh')
   resendOTP(@Body() data: autheObj) {
     return this.authService.resendOTP(data);
   }
