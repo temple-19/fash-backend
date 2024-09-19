@@ -2,11 +2,8 @@ import { Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import * as speakeasy from 'speakeasy';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { User } from 'src/schemas/User.schema';
 import * as jwt from 'jsonwebtoken';
-import { Admin } from 'src/schemas/admin.schema';
-import { error } from 'console';
+import { Admin } from 'src/schemas/Admin.schema';
 const nodemailer = require('nodemailer');
 
 @Injectable()

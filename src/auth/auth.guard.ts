@@ -9,9 +9,8 @@ import { Request } from 'express';
 import { AuthService } from './auth.service';
 import * as jwt from 'jsonwebtoken';
 import { InjectModel } from '@nestjs/mongoose';
-import { User } from 'src/schemas/User.schema';
 import { Model } from 'mongoose';
-import { Admin } from 'src/schemas/admin.schema';
+import { Admin } from 'src/schemas/Admin.schema';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
