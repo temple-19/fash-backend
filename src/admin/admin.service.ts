@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { UpdateAdminDto } from './dto/UpdateAdmin.dto';
 import { Admin } from 'src/schemas/Admin.schema';
 import { AuthService } from 'src/auth/auth.service';
 import * as bcrypt from 'bcrypt';
@@ -23,10 +22,15 @@ export class AdminService {
   }
 
   async getUserById(id: string) {
-    return await this.adminModel.findById(id).populate(['settings', 'posts']);
+    return await this.adminModel.findById(id);
   }
 
-  async updateUser(id: string, updateUserDto: UpdateAdminDto) {
+  async updateUser(id: string, updateUserDto) {
+    if (updateUserDto.password) {
+      updateUserDto.password = await this.authService.encrypt(
+        updateUserDto.password,
+      );
+    }
     return await this.adminModel.findByIdAndUpdate(id, updateUserDto, {
       new: true,
     });
@@ -34,16 +38,14 @@ export class AdminService {
 
   async login(body) {
     try {
-      let data: Admin = await this.adminModel.findOne({
-        where: { email: body.email },
-      });
+      let data = await this.adminModel.findOne({ email: body.email });
 
       const passwordIsMatch = await bcrypt.compare(
         body.password,
         data.password,
       );
       if (data && passwordIsMatch) {
-        const { password, ...Filterdata } = data;
+        const { password, ...Filterdata } = data.toObject();
         var token = jwt.sign(
           {
             data: Filterdata,

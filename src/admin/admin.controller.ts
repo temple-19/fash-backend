@@ -11,19 +11,23 @@ import {
   Delete,
 } from '@nestjs/common';
 import { AdminService } from './admin.service';
-import { CreateAdminDto } from './dto/CreateAdmin.dto';
 import mongoose from 'mongoose';
-import { UpdateAdminDto } from './dto/UpdateAdmin.dto';
 
 @Controller('admin')
 export class AdminController {
-  constructor(private usersService: AdminService) {}
+  constructor(private adminService: AdminService) {}
 
-  @Post()
+  // @Post('create')
+  // @UsePipes(new ValidationPipe())
+  // createUser(@Body() CreateAdminDto) {
+  //   console.log(CreateAdminDto);
+  //   return this.adminService.createUser(CreateAdminDto);
+  // }
+
+  @Post('sign-in')
   @UsePipes(new ValidationPipe())
-  createUser(@Body() createUserDto: CreateAdminDto) {
-    console.log(createUserDto);
-    return this.usersService.createUser(CreateAdminDto);
+  loginUser(@Body() body) {
+    return this.adminService.login(body);
   }
 
   // users/:id
@@ -31,20 +35,17 @@ export class AdminController {
   async getUserById(@Param('id') id: string) {
     const isValid = mongoose.Types.ObjectId.isValid(id);
     if (!isValid) throw new HttpException('User not found', 404);
-    const findUser = await this.usersService.getUserById(id);
+    const findUser = await this.adminService.getUserById(id);
     if (!findUser) throw new HttpException('User not found', 404);
     return findUser;
   }
 
   @Patch(':id')
   @UsePipes(new ValidationPipe())
-  async updateUser(
-    @Param('id') id: string,
-    @Body() updateUserDto: UpdateAdminDto,
-  ) {
+  async updateUser(@Param('id') id: string, @Body() updateUserDto) {
     const isValid = mongoose.Types.ObjectId.isValid(id);
     if (!isValid) throw new HttpException('Invalid ID', 400);
-    const updatedUser = await this.usersService.updateUser(id, updateUserDto);
+    const updatedUser = await this.adminService.updateUser(id, updateUserDto);
     if (!updatedUser) throw new HttpException('User Not Found', 404);
     return updatedUser;
   }

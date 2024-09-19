@@ -1,16 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import mongoose from 'mongoose';
-import { v4 as uuidv4 } from 'uuid';
 
 @Schema()
 export class Product {
-  // @Prop({
-  //   type: String,
-  //   default: uuidv4, // Generates a uuid by default
-  //   unique: true, // Ensures that this id is unique
-  // })
-  // id: string;
-
   @Prop({ required: true })
   name: string;
 
@@ -18,7 +9,7 @@ export class Product {
   sex: string; //men or female
 
   @Prop({ required: true })
-  collection: string;
+  _collection: string;
 
   @Prop({ required: true })
   category: string;
@@ -29,17 +20,26 @@ export class Product {
   @Prop({ required: true })
   price: number;
 
+  @Prop({ required: true })
+  quantity: number;
+
   @Prop({ type: [String], required: true })
   color: string[];
 
   @Prop({ required: true })
-  img_Url: number;
+  img_Url: string;
 
   @Prop({ type: [String], required: true })
   img_Arr_Url: string[];
 
   @Prop({ required: true, default: false })
   featured: boolean;
+
+  @Prop({ default: Date.now })
+  createdAt: Date;
+
+  @Prop({ default: Date.now })
+  updatedAt: Date;
 }
 
 export const ProductSchema = SchemaFactory.createForClass(Product);

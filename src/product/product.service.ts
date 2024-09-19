@@ -10,8 +10,29 @@ export class ProductService {
   ) {}
 
   async createProduct(createProductDto) {
-    const newUser = await new this.productModel(createProductDto);
-    return newUser.save();
+    try {
+      const newProduct = new this.productModel(createProductDto);
+
+      // Validate the product creation
+      if (!newProduct) {
+        throw new Error('Product creation failed');
+      }
+
+      const savedProduct = await newProduct.save();
+
+      return {
+        status: true,
+        data: savedProduct,
+        message: 'Product created successfully',
+      };
+    } catch (error) {
+      // Handle validation or other errors
+      return {
+        status: false,
+        message: 'Product creation failed',
+        error: error.message || 'An error occurred during product creation',
+      };
+    }
   }
 
   async getProducts() {
@@ -29,6 +50,24 @@ export class ProductService {
   }
 
   async deleteProduct(id: string) {
-    return await this.productModel.findByIdAndDelete(id);
+    try {
+      // Check if the product exists
+      const product = await this.productModel.findById(id);
+      if (!product) {
+        return { status: false, message: 'Product not found' };
+      }
+
+      // Delete the product
+      await this.productModel.findByIdAndDelete(id);
+
+      return { status: true, message: 'Product successfully deleted' };
+    } catch (error) {
+      // Handle unexpected errors
+      return {
+        status: false,
+        message: 'Failed to delete product',
+        error: error.message || 'An unexpected error occurred',
+      };
+    }
   }
 }

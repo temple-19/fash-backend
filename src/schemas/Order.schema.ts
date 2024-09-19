@@ -41,6 +41,7 @@ export class Order {
   @Prop({
     type: [
       {
+        id: { type: String, required: true },
         name: { type: String, required: true },
         quantity: { type: Number, required: true },
         price: { type: Number, required: true },
@@ -49,7 +50,13 @@ export class Order {
     ],
     required: true,
   })
-  items: { name: string; quantity: number; price: number; color: string }[];
+  items: {
+    id: string;
+    name: string;
+    quantity: number;
+    price: number;
+    color: string;
+  }[];
 }
 
 export const OrderSchema = SchemaFactory.createForClass(Order);

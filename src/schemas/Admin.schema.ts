@@ -6,7 +6,7 @@ export class Admin {
   email: string;
 
   @Prop({ required: false })
-  Name?: string;
+  name: string;
 
   @Prop({ required: false })
   password: string;
