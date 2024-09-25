@@ -9,15 +9,13 @@ import {
   HttpException,
   Patch,
   Delete,
-  Query,
 } from '@nestjs/common';
 import mongoose from 'mongoose';
-import { ProductService } from './product.service';
-import { ProductQueryFilter } from 'src/schemas/Product.schema';
+import { OrderService } from './order.service';
 
 @Controller('item')
-export class ProductController {
-  constructor(private productService: ProductService) {}
+export class OrderController {
+  constructor(private productService: OrderService) {}
 
   @Post()
   @UsePipes(new ValidationPipe())
@@ -26,27 +24,7 @@ export class ProductController {
     return this.productService.createProduct(createProductDto);
   }
 
-  @Post('test')
-  test(
-    @Body('email') email: string,
-    @Body('amount') amount: number,
-    @Body('callback') callback: string,
-  ) {
-    return this.productService.test(amount, email); // Notice the parameter order, `amount` comes first in your service
-  }
-
-  @Get('test')
-  testv(@Body('reference') reference: string) {
-    return this.productService.testv(reference);
-  }
-
-  @Post('web')
-  async handleWebhook(@Body() body: any) {
-    console.log('Webhook event data:', body);
-    return { status: 'success' };
-  }
-
-  @Get('')
+  @Get()
   getUsers() {
     return this.productService.getProducts();
   }

@@ -1,5 +1,17 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 
+export class ProductQueryFilter {
+  category?: string;
+
+  color?: string;
+
+  size?: string;
+
+  sex?: string;
+
+  collection?: string;
+}
+
 @Schema()
 export class Product {
   @Prop({ required: true })
@@ -13,9 +25,6 @@ export class Product {
 
   @Prop({ required: true })
   category: string;
-
-  @Prop({ required: true })
-  size: string;
 
   @Prop({ required: true })
   price: number;

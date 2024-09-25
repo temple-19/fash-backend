@@ -7,7 +7,7 @@ import { UpdateUserDto } from './dto/UpdateUser.dto';
 
 @Injectable()
 export class UsersService {
-  constructor(@InjectModel(User.name) private userModel: Model<User>) {}
+  constructor(@InjectModel(User.name) private userModel?: Model<User>) {}
 
   async createUser(createUserDto: CreateUserDto) {
     const newUser = new this.userModel(createUserDto);
