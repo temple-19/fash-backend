@@ -13,28 +13,35 @@ import {
 import mongoose from 'mongoose';
 import { OrderService } from './order.service';
 
-@Controller('item')
+@Controller('order')
 export class OrderController {
-  constructor(private productService: OrderService) {}
-
+  constructor(private orderService: OrderService) {}
+  // make refund route
+  //pay route
   @Post()
   @UsePipes(new ValidationPipe())
-  createUser(@Body() createProductDto) {
-    console.log(createProductDto);
-    return this.productService.createProduct(createProductDto);
+  createOrder(@Body() createOrderDto) {
+    console.log(createOrderDto);
+    return this.orderService.createOrder(createOrderDto);
+  }
+
+  @Post('web')
+  async handleWebhook(@Body() body: any) {
+    console.log('Webhook event data:', body.data.reference);
+    return this.orderService.webhook(body.data.reference);
   }
 
   @Get()
   getUsers() {
-    return this.productService.getProducts();
+    return this.orderService.getOrders();
   }
 
-  // users/:id
+  // order/:id
   @Get(':id')
   async getUserById(@Param('id') id: string) {
     const isValid = mongoose.Types.ObjectId.isValid(id);
     if (!isValid) throw new HttpException('User not found', 404);
-    const findUser = await this.productService.getProductById(id);
+    const findUser = await this.orderService.getOrderById(id);
     if (!findUser) throw new HttpException('User not found', 404);
     return findUser;
   }
@@ -44,7 +51,7 @@ export class OrderController {
   async updateUser(@Param('id') id: string, @Body() updateProductDto) {
     const isValid = mongoose.Types.ObjectId.isValid(id);
     if (!isValid) throw new HttpException('Invalid ID', 400);
-    const updatedUser = await this.productService.updateProduct(
+    const updatedUser = await this.orderService.updateOrder(
       id,
       updateProductDto,
     );
@@ -56,7 +63,7 @@ export class OrderController {
   async deleteUser(@Param('id') id: string) {
     const isValid = mongoose.Types.ObjectId.isValid(id);
     if (!isValid) throw new HttpException('Invalid ID', 400);
-    const deletedUser = await this.productService.deleteProduct(id);
+    const deletedUser = await this.orderService.deleteOrder(id);
     if (!deletedUser) throw new HttpException('User Not Found', 404);
     return;
   }

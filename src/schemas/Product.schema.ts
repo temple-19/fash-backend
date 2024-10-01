@@ -35,6 +35,9 @@ export class Product {
   @Prop({ type: [String], required: true })
   color: string[];
 
+  @Prop({ type: [String], required: true })
+  size: string[];
+
   @Prop({ required: true })
   img_Url: string;
 

@@ -9,11 +9,9 @@ import {
   HttpException,
   Patch,
   Delete,
-  Query,
 } from '@nestjs/common';
 import mongoose from 'mongoose';
 import { ProductService } from './product.service';
-import { ProductQueryFilter } from 'src/schemas/Product.schema';
 
 @Controller('item')
 export class ProductController {

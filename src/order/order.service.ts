@@ -1,69 +1,154 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
+import axios from 'axios';
 import { Model } from 'mongoose';
 import { Order } from 'src/schemas/Order.schema';
+import { Product } from 'src/schemas/Product.schema';
+
+export class createOrderDto {
+  paymentDetails: {
+    email: string;
+    amount: number;
+  };
+
+  order: object;
+}
 
 @Injectable()
 export class OrderService {
-  constructor(@InjectModel(Order.name) private orderModel?: Model<Order>) {}
+  constructor(
+    @InjectModel(Order.name) private orderModel?: Model<Order>,
+    @InjectModel(Product.name) private productModel?: Model<Product>,
+  ) {}
+  private readonly paystackSecretKey = process.env.PAYSTACK_SECRET_KEY;
 
-  async createProduct(createProductDto) {
+  async webhook(reference: string) {
     try {
-      const newProduct = new this.orderModel(createProductDto);
+      const order = await this.orderModel.findOne({
+        reference: reference,
+      });
 
-      // Validate the product creation
-      if (!newProduct) {
-        throw new Error('Product creation failed');
+      if (!order) {
+        throw new Error('Order not found');
       }
 
-      const savedProduct = await newProduct.save();
+      // Loop through the items in the order and reduce product quantities
+      for (const item of order.items) {
+        const product = await this.productModel.findOne({ id: item.id }); // Fetch the product by id
+        // await this.productModel.findById(item.id);
+        if (!product) {
+          throw new Error(`Product with id ${item.id} not found`);
+        }
 
-      return {
-        status: true,
-        data: savedProduct,
-        message: 'Product created successfully',
+        // Reduce product's quantity by the quantity in the order item
+        product.quantity -= item.quantity;
+
+        // Ensure the product quantity doesn't go below zero
+        if (product.quantity < 0) {
+          throw new Error(`Not enough stock for product ${item.name}`);
+        }
+
+        // Save the updated product back to the database
+        await product.save();
+      }
+
+      // Update order status to 'PAID'
+      order.orderStatus = 'PAID';
+      await order.save();
+    } catch (error) {
+      throw new Error(`Order update failed: ${error.message}`);
+    }
+  }
+
+  async createOrder(createOrderDto: createOrderDto) {
+    try {
+      const headers = {
+        Authorization: `Bearer ${this.paystackSecretKey}`,
+        'Content-Type': 'application/json',
       };
+
+      let newOrder;
+
+      let email = createOrderDto.paymentDetails.email;
+      let amount = createOrderDto.paymentDetails.amount;
+      let data = {
+        email,
+        amount: amount * 100, // Convert Naira to kobo
+        callback: 'www.google.com',
+      };
+
+      const response = await axios.post(
+        'https://api.paystack.co/transaction/initialize',
+        data,
+        { headers },
+      );
+
+      newOrder = await new this.orderModel(createOrderDto.order);
+
+      // Validate the product creation
+      if (!newOrder) {
+        throw new Error('Order creation failed');
+      }
+      newOrder.reference = response.data.reference;
+
+      await newOrder.save();
+      return response.data;
     } catch (error) {
       // Handle validation or other errors
       return {
         status: false,
-        message: 'Product creation failed',
-        error: error.message || 'An error occurred during product creation',
+        message: 'Order creation failed',
+        error: error.message || 'An error occurred during Order creation',
       };
     }
   }
 
-  async getProducts() {
+  async verify(createOrderDto: createOrderDto, reference: string) {
+    const headers = {
+      Authorization: `Bearer ${this.paystackSecretKey}`,
+    };
+    const response = await axios.get(
+      `https://api.paystack.co/transaction/verify/${reference}`,
+      { headers },
+    );
+
+    return {
+      status: true,
+      data: response.data,
+    };
+  }
+
+  async getOrders() {
     return await this.orderModel.find();
   }
 
-  async getProductById(id: string) {
+  async getOrderById(id: string) {
     return await this.orderModel.findById(id);
   }
 
-  async updateProduct(id: string, updateProductDto) {
+  async updateOrder(id: string, updateProductDto) {
     return await this.orderModel.findByIdAndUpdate(id, updateProductDto, {
       new: true,
     });
   }
 
-  async deleteProduct(id: string) {
+  async deleteOrder(id: string) {
     try {
       // Check if the product exists
-      const product = await this.orderModel.findById(id);
-      if (!product) {
-        return { status: false, message: 'Product not found' };
+      const order = await this.orderModel.findById(id);
+      if (!order) {
+        return { status: false, message: 'Order not found' };
       }
 
       // Delete the product
       await this.orderModel.findByIdAndDelete(id);
 
-      return { status: true, message: 'Product successfully deleted' };
+      return { status: true, message: 'Order successfully deleted' };
     } catch (error) {
       // Handle unexpected errors
       return {
         status: false,
-        message: 'Failed to delete product',
+        message: 'Failed to delete order',
         error: error.message || 'An unexpected error occurred',
       };
     }

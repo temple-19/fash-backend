@@ -1,16 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { v4 as uuidv4 } from 'uuid';
-import mongoose from 'mongoose';
 
 @Schema()
 export class Order {
-  // @Prop({
-  //   type: String,
-  //   default: uuidv4, // Generates a uuid by default
-  //   unique: true, // Ensures that this id is unique
-  // })
-  // id: string;
-
   @Prop({ default: Date.now })
   createdAt: Date;
 
@@ -24,10 +15,13 @@ export class Order {
   phone_Number: number;
 
   @Prop({ required: true })
-  orderStatus: string; //paid, refund,....
+  orderStatus: string; //paid, refund...
 
   @Prop({ required: true })
   email: string;
+
+  @Prop({ required: true, unique: true })
+  reference: string;
 
   @Prop({ required: true })
   shippingAddress: {
@@ -46,6 +40,7 @@ export class Order {
         quantity: { type: Number, required: true },
         price: { type: Number, required: true },
         color: { type: String, required: true },
+        size: { type: String, required: true },
       },
     ],
     required: true,
@@ -56,6 +51,7 @@ export class Order {
     quantity: number;
     price: number;
     color: string;
+    size: string;
   }[];
 }
 
