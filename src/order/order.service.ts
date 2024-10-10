@@ -11,7 +11,7 @@ export class createOrderDto {
     amount: number;
   };
 
-  order: object;
+  order: Order;
 }
 
 @Injectable()
@@ -68,6 +68,13 @@ export class OrderService {
       };
 
       let newOrder;
+      createOrderDto.order.orderStatus = 'Pending';
+      newOrder = await new this.orderModel(createOrderDto.order);
+
+      // Validate the product creation
+      if (!newOrder) {
+        throw new Error('Order creation failed');
+      }
 
       let email = createOrderDto.paymentDetails.email;
       let amount = createOrderDto.paymentDetails.amount;
@@ -83,12 +90,6 @@ export class OrderService {
         { headers },
       );
 
-      newOrder = await new this.orderModel(createOrderDto.order);
-
-      // Validate the product creation
-      if (!newOrder) {
-        throw new Error('Order creation failed');
-      }
       newOrder.reference = response.data.reference;
 
       await newOrder.save();
