@@ -84,7 +84,7 @@ export class OrderService {
         'Content-Type': 'application/json',
       };
 
-      createOrderDto.orderStatus = 'Pending';
+      createOrderDto.orderStatus = 'Failed';
 
       let email = createOrderDto.email;
       let amount = createOrderDto.amount;
