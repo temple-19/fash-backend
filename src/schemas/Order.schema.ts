@@ -9,21 +9,30 @@ export class Order {
   updatedAt: Date;
 
   @Prop({ required: true })
-  price: number;
+  amount: number;
 
   @Prop({ required: true })
   phone_Number: number;
 
-  @Prop({ required: true })
+  @Prop({ required: false })
   orderStatus: string; //paid, refund...
 
   @Prop({ required: true })
   email: string;
 
-  @Prop({ required: true, unique: true })
+  @Prop({ unique: true })
   reference: string;
 
-  @Prop({ required: true })
+  @Prop({
+    required: true,
+    type: {
+      street: { type: String, required: true },
+      city: { type: String, required: true },
+      state: { type: String, required: true },
+      postalCode: { type: Number, required: true },
+      country: { type: String, required: true },
+    },
+  })
   shippingAddress: {
     street: string;
     city: string;

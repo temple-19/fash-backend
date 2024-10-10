@@ -6,12 +6,29 @@ import { Order } from 'src/schemas/Order.schema';
 import { Product } from 'src/schemas/Product.schema';
 
 export class createOrderDto {
-  paymentDetails: {
-    email: string;
-    amount: number;
+  amount: number; // Total price for the order
+  phone_Number: number; // Customer's phone number
+  orderStatus?: string; // Will be set to 'Pending' by default in the logic
+  email: string; // Customer's email
+  shippingAddress: {
+    street: string; // Shipping address details
+    city: string;
+    state: string;
+    postalCode: string;
+    country: string;
   };
+  items: {
+    id: string; // Product ID
+    name: string; // Product name
+    quantity: number; // Quantity of the product
+    price: number; // Price of the product
+    color: string; // Selected color for the product
+    size: string; // Selected size for the product
+  }[];
+}
 
-  order: Order;
+function delay(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 @Injectable()
@@ -67,17 +84,10 @@ export class OrderService {
         'Content-Type': 'application/json',
       };
 
-      let newOrder;
-      createOrderDto.order.orderStatus = 'Pending';
-      newOrder = await new this.orderModel(createOrderDto.order);
+      createOrderDto.orderStatus = 'Pending';
 
-      // Validate the product creation
-      if (!newOrder) {
-        throw new Error('Order creation failed');
-      }
-
-      let email = createOrderDto.paymentDetails.email;
-      let amount = createOrderDto.paymentDetails.amount;
+      let email = createOrderDto.email;
+      let amount = createOrderDto.amount;
       let data = {
         email,
         amount: amount * 100, // Convert Naira to kobo
@@ -90,7 +100,22 @@ export class OrderService {
         { headers },
       );
 
-      newOrder.reference = response.data.reference;
+      console.log(response.data.data);
+      // await delay(2000);
+
+      // Check if Paystack transaction initialization was successful
+      if (!response.data.data.reference) {
+        throw new Error('Failed to retrieve reference from Paystack');
+      }
+
+      let newOrder = await new this.orderModel(createOrderDto);
+
+      // Validate the product creation
+      if (!newOrder) {
+        throw new Error('Order creation failed');
+      }
+
+      newOrder.reference = response.data.data.reference;
 
       await newOrder.save();
       return response.data;

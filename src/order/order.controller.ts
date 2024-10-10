@@ -21,7 +21,6 @@ export class OrderController {
   @Post()
   @UsePipes(new ValidationPipe())
   createOrder(@Body() createOrderDto) {
-    console.log(createOrderDto);
     return this.orderService.createOrder(createOrderDto);
   }
 
