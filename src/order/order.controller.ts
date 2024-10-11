@@ -9,8 +9,6 @@ import {
   HttpException,
   Patch,
   Delete,
-  Req,
-  Res,
 } from '@nestjs/common';
 import mongoose from 'mongoose';
 import { OrderService } from './order.service';
@@ -27,18 +25,38 @@ export class OrderController {
   }
 
   @Post('web')
-  async handleWebhook(@Req() req: any, @Res() res: any) {
-    console.log('Webhook event data:', req.body);
+  async handleWebhook(@Body() body: any) {
+    console.log('Webhook event data:', body.data.reference.event);
     //if the body.event = "paymentrequest.success"do this {
-    const event = req.body;
-    console.log('winter rabit');
-    // Do something with event
-    //  this.orderService.webhook(req.body);
-    res.send(200);
+    return this.orderService.webhook(body.data.reference);
     //}
     //if body.event = "refund.failed" {update the order status as refund failed}
     //if body.event = "refund.processed" {update the order status as refund success}
   }
+  // @Post('web')
+  // async handleWebhook(@Body() body: any) {
+  //   try {
+  //     // Log the event type and reference for debugging
+  //     const eventType = body.event;
+  //     const reference = body.data.reference;
+
+  //     console.log('Webhook event:', eventType);
+  //     console.log('Transaction reference:', reference);
+
+  //     // Handle specific event types
+  //     if (eventType === 'charge.success' || eventType === 'refund.success') {
+  //       // Process the event based on the reference
+  //       await this.orderService.webhook(reference);
+  //       return { status: 'success', message: 'Order status updated successfully' };
+  //     } else {
+  //       // If the event is not handled, return a 200 to prevent retries
+  //       return { status: 'ignored', message: `Event ${eventType} ignored` };
+  //     }
+  //   } catch (error) {
+  //     console.error('Webhook error:', error.message);
+  //     return { status: 'error', message: `Error processing webhook: ${error.message}` };
+  //   }
+  // }
 
   @Get()
   getUsers() {

@@ -48,14 +48,15 @@ export class OrderService {
 
     try {
       // Make API call to Paystack to verify the transaction
-      const response = await axios.get(
+      let response = await axios.get(
         `https://api.paystack.co/transaction/verify/${reference}`,
         { headers },
       );
 
+      console.log(response.data.data.status);
       if (response.data.data.status === 'success') {
         // Retrieve the corresponding order
-        const order = await this.orderModel.findOne({ reference });
+        let order = await this.orderModel.findOne({ reference });
 
         if (!order || order.orderStatus == 'PAID') {
           throw new Error('Order not found or paid already');
