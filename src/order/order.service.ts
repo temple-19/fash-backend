@@ -44,7 +44,7 @@ export class OrderService {
       const order = await this.orderModel.findOne({
         reference: reference,
       });
-
+      console.log(order);
       if (!order) {
         throw new Error('Order not found');
       }
