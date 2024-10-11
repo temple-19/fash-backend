@@ -9,7 +9,7 @@ export class Admin {
   name: string;
 
   @Prop({ required: false })
-  password: string;
+  notifications: string[];
 }
 
 export const AdminSchema = SchemaFactory.createForClass(Admin);

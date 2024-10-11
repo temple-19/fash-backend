@@ -35,35 +35,38 @@ export class AdminService {
       new: true,
     });
   }
-
+  //add query date range
   async login(body) {
     try {
       let data = await this.adminModel.findOne({ email: body.email });
 
-      const passwordIsMatch = await bcrypt.compare(
-        body.password,
-        data.password,
-      );
-      if (data && passwordIsMatch) {
-        const { password, ...Filterdata } = data.toObject();
-        var token = jwt.sign(
-          {
-            data: Filterdata,
-          },
-          process.env.DEFAULT_SECRET,
-          { expiresIn: '24h' },
-        );
+      if (data) {
+        let verifiedUser = await this.authService.verifyOTP(body);
+        if (verifiedUser.status) {
+          var token = jwt.sign(
+            {
+              data,
+            },
+            process.env.DEFAULT_SECRET,
+            { expiresIn: '24h' },
+          );
 
-        return {
-          status: true,
-          token: token,
-          data: Filterdata,
-          message: 'login successfully',
-        };
+          return {
+            status: true,
+            token: token,
+            data: data,
+            message: 'login successfully',
+          };
+        } else {
+          return {
+            status: false,
+            message: 'login failed wrong code',
+          };
+        }
       } else {
         return {
           status: false,
-          message: 'login failed, either email or password is wrong',
+          message: 'login failed wrong email',
         };
       }
     } catch (error) {

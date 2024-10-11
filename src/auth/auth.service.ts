@@ -24,13 +24,12 @@ export class AuthService {
         process.env.DEFAULT_SECRET,
         data.email,
       );
-
       // Send OTP via email
       await this.sendEmail(data.email, OTP);
-      console.log(OTP);
+
       return {
         status: true,
-        message: `OTP sent: ${OTP} `,
+        message: `OTP sent`,
       };
     } catch (error) {
       return {
@@ -59,6 +58,7 @@ export class AuthService {
     }
   }
 
+  //add query date range
   async verifyOTP(data: { email: string; otp: string }) {
     try {
       const validUser = this.verifyOtp(
@@ -66,6 +66,7 @@ export class AuthService {
         data.email,
         data.otp,
       );
+      //send notifications here and for refunds
       if (validUser) {
         return {
           status: true,

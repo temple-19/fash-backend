@@ -15,7 +15,7 @@ export class Order {
   phone_Number: number;
 
   @Prop({ required: false })
-  orderStatus: string; //paid, refund...
+  orderStatus: string; //paid, returnded/refund ...
 
   @Prop({ required: true })
   email: string;

@@ -27,9 +27,9 @@ export class createOrderDto {
   }[];
 }
 
-function delay(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
+// function delay(ms: number) {
+//   return new Promise((resolve) => setTimeout(resolve, ms));
+// }
 
 @Injectable()
 export class OrderService {
@@ -60,6 +60,8 @@ export class OrderService {
         // Reduce product's quantity by the quantity in the order item
         product.quantity -= item.quantity;
 
+        product.topProducts += 1;
+
         // Ensure the product quantity doesn't go below zero
         if (product.quantity < 0) {
           throw new Error(`Not enough stock for product ${item.name}`);
@@ -71,6 +73,8 @@ export class OrderService {
 
       // Update order status to 'PAID'
       order.orderStatus = 'PAID';
+
+      //UPDATE REVENUE FOR THE PARTICULAR MONTH
       await order.save();
     } catch (error) {
       throw new Error(`Order update failed: ${error.message}`);

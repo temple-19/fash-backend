@@ -27,7 +27,11 @@ export class OrderController {
   @Post('web')
   async handleWebhook(@Body() body: any) {
     console.log('Webhook event data:', body.data.reference);
+    //if the body.event = "paymentrequest.success"do this {
     return this.orderService.webhook(body.data.reference);
+    //}
+    //if body.event = "refund.failed" {update the order status as refund failed}
+    //if body.event = "refund.processed" {update the order status as refund success}
   }
 
   @Get()

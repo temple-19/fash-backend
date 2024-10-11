@@ -23,6 +23,9 @@ export class Product {
   @Prop({ required: true })
   _collection: string;
 
+  @Prop({ default: 0 })
+  topProducts: number;
+
   @Prop({ required: true })
   category: string;
 
@@ -40,6 +43,9 @@ export class Product {
 
   @Prop({ required: true })
   img_Url: string;
+
+  @Prop({ required: true })
+  hover_Url: string;
 
   @Prop({ type: [String], required: true })
   img_Arr_Url: string[];
