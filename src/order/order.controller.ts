@@ -9,9 +9,13 @@ import {
   HttpException,
   Patch,
   Delete,
+  Headers,
+  BadRequestException,
+  Req,
 } from '@nestjs/common';
 import mongoose from 'mongoose';
 import { OrderService } from './order.service';
+import * as crypto from 'crypto';
 
 @Controller('order')
 export class OrderController {
@@ -33,27 +37,47 @@ export class OrderController {
   //   //if body.event = "refund.failed" {update the order status as refund failed}
   //   //if body.event = "refund.processed" {update the order status as refund success}
   // }
+
   @Post('web')
-  async handleWebhook(@Body() body: any) {
+  async handleWebhook(
+    @Body() body: any,
+    @Headers('x-paystack-signature') signature: string,
+    @Req() req: any,
+  ) {
     try {
-      // Log the event type and reference for debugging
+      // Log the received event for debugging purposes
       const eventType = body.event;
       const reference = body.data.reference;
-
       console.log('Webhook event:', eventType);
       console.log('Transaction reference:', reference);
 
-      // Handle specific event types
+      // Step 1: Validate Paystack signature
+      const secret = process.env.PAYSTACK_SECRET_KEY;
+      const rawBody = JSON.stringify(body); // Ensure the body is stringified correctly
+      const hash = crypto
+        .createHmac('sha512', secret)
+        .update(rawBody)
+        .digest('hex');
+
+      if (hash !== signature) {
+        throw new BadRequestException('Invalid Paystack signature');
+      }
+
+      // Step 2: Handle specific event types
       if (eventType === 'charge.success' || eventType === 'refund.success') {
         // Process the event based on the reference
         await this.orderService.webhook(reference);
         return {
           status: 'success',
-          message: 'Order status updated successfully',
+          message: `Order status updated for ${eventType}`,
         };
       } else {
-        // If the event is not handled, return a 200 to prevent retries
-        return { status: 'ignored', message: `Event ${eventType} ignored` };
+        // Log ignored events for visibility
+        console.log(`Event ${eventType} ignored`);
+        return {
+          status: 'ignored',
+          message: `Event ${eventType} ignored`,
+        };
       }
     } catch (error) {
       console.error('Webhook error:', error.message);
