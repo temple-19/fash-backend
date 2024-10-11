@@ -1,9 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import axios from 'axios';
 import { Model } from 'mongoose';
 import { Order } from 'src/schemas/Order.schema';
 import { Product } from 'src/schemas/Product.schema';
+import { Revenue } from 'src/schemas/Revenue.schema';
 
 export class createOrderDto {
   amount: number; // Total price for the order
@@ -36,8 +37,75 @@ export class OrderService {
   constructor(
     @InjectModel(Order.name) private orderModel?: Model<Order>,
     @InjectModel(Product.name) private productModel?: Model<Product>,
+    @InjectModel(Revenue.name) private revenueModel?: Model<Revenue>,
   ) {}
   private readonly paystackSecretKey = process.env.PAYSTACK_SECRET_KEY;
+
+  async testv(reference: string) {
+    const headers = {
+      Authorization: `Bearer ${this.paystackSecretKey}`,
+    };
+
+    try {
+      // Make API call to Paystack to verify the transaction
+      const response = await axios.get(
+        `https://api.paystack.co/transaction/verify/${reference}`,
+        { headers },
+      );
+
+      if (response.data.data.status === 'success') {
+        // Retrieve the corresponding order
+        const order = await this.orderModel.findOne({ reference });
+
+        if (!order || order.orderStatus == 'PAID') {
+          throw new Error('Order not found or paid already');
+        }
+
+        // Loop through the items in the order and update each product's stock and topProducts count
+        for (const item of order.items) {
+          const product = await this.productModel.findOne({ _id: item.id });
+
+          if (!product) {
+            throw new Error(`Product with id ${item.id} not found`);
+          }
+
+          // Reduce product quantity based on the order item quantity
+          product.quantity -= item.quantity;
+
+          // Ensure product quantity doesn't go below zero
+          if (product.quantity < 0) {
+            throw new Error(`Not enough stock for product ${item.name}`);
+          }
+
+          // Increment topProducts count
+          product.topProducts += 1;
+
+          // Save the updated product back to the database
+          await product.save();
+        }
+
+        // Update the order status to 'PAID' and save it
+        order.orderStatus = 'PAID';
+        await order.save();
+
+        return {
+          status: true,
+          message: 'Order updated and payment verified successfully',
+        };
+      } else {
+        return {
+          status: false,
+          message: 'Payment was not successful',
+        };
+      }
+    } catch (error) {
+      console.error('Payment verification error:', error.message || error);
+      throw new HttpException(
+        `Payment verification failed: ${error.message || 'Unknown error'}`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
 
   async webhook(reference: string) {
     try {

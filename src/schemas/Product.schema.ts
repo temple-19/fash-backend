@@ -44,10 +44,10 @@ export class Product {
   @Prop({ required: true })
   img_Url: string;
 
-  @Prop({ required: true })
+  @Prop({ required: false })
   hover_Url: string;
 
-  @Prop({ type: [String], required: true })
+  @Prop({ type: [String], required: false })
   img_Arr_Url: string[];
 
   @Prop({ required: true, default: false })
