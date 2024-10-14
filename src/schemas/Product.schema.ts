@@ -11,6 +11,7 @@ export class ProductQueryFilter {
 
   collection?: string;
 }
+//
 
 @Schema()
 export class Product {
