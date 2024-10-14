@@ -79,7 +79,7 @@ export class OrderService {
           }
 
           // Increment topProducts count
-          product.topProducts += 1;
+          product.topProducts += item.quantity;
 
           // Save the updated product back to the database
           await product.save();

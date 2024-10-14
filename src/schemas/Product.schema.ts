@@ -32,6 +32,9 @@ export class Product {
   @Prop({ required: true })
   price: number;
 
+  @Prop({ default: false })
+  isArchived: boolean;
+
   @Prop({ required: true })
   quantity: number;
 

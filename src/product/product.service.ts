@@ -89,6 +89,18 @@ export class ProductService {
     }
   }
 
+  async getArchived() {
+    // Find all products where isArchive is true
+    const archivedProducts = await this.productModel.find({ isArchive: true });
+    return archivedProducts;
+  }
+
+  async getNotArchived() {
+    // Find all products where isArchive is true
+    const archivedProducts = await this.productModel.find({ isArchive: false });
+    return archivedProducts;
+  }
+
   async getProducts() {
     return await this.productModel.find();
   }
