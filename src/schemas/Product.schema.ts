@@ -65,3 +65,17 @@ export class Product {
 }
 
 export const ProductSchema = SchemaFactory.createForClass(Product);
+
+@Schema()
+export class Collectionn {
+  @Prop({ required: true, unique: true })
+  name: string;
+
+  @Prop({ default: Date.now })
+  createdAt: Date;
+
+  @Prop({ default: Date.now })
+  updatedAt: Date;
+}
+
+export const CollectionnSchema = SchemaFactory.createForClass(Collectionn);

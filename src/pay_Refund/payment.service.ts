@@ -115,13 +115,44 @@ export class PaymentService {
         'Content-Type': 'application/json',
       };
 
-      const response = await axios.post('https://api.paystack.co/refund', {
+      const response = await axios.get('https://api.paystack.co/refund', {
         headers,
       });
 
-      return { status: true, message: response.data };
+      // Check if the response structure is valid
+      if (
+        !response.data ||
+        !response.data.message ||
+        !Array.isArray(response.data.data)
+      ) {
+        throw new Error('Invalid data format received from Paystack');
+      }
+
+      // Trim the refund data to only include essential information
+      const trimmedData = response.data.data.map((refund) => ({
+        id: refund.id,
+        transaction_reference: refund.transaction_reference,
+        amount: refund.amount,
+        currency: refund.currency,
+        status: refund.status,
+        refunded_by: refund.refunded_by,
+        customer_email: refund.customer?.email, // Safely accessing customer email
+        refund_type: refund.refund_type,
+        createdAt: refund.createdAt,
+        reason: refund.reason,
+      }));
+
+      return {
+        status: true,
+        message: 'Refunds retrieved',
+        data: trimmedData,
+      };
     } catch (error) {
-      console.log(error);
+      console.error('Error fetching refunds:', error.message);
+      return {
+        status: false,
+        message: 'Failed to retrieve refunds',
+      };
     }
   }
 }

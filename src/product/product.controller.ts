@@ -19,17 +19,19 @@ export class ProductController {
 
   @Post()
   @UsePipes(new ValidationPipe())
-  createUser(@Body() createProductDto) {
+  createProduct(@Body() createProductDto) {
     console.log(createProductDto);
     return this.productService.createProduct(createProductDto);
   }
 
+  @Post('collection')
+  createColl(@Body() createProductDto) {
+    console.log(createProductDto);
+    return this.productService.createColl(createProductDto);
+  }
+
   @Post('test')
-  test(
-    @Body('email') email: string,
-    @Body('amount') amount: number,
-    @Body('callback') callback: string,
-  ) {
+  test(@Body('email') email: string, @Body('amount') amount: number) {
     return this.productService.test(amount, email); // Notice the parameter order, `amount` comes first in your service
   }
 
@@ -38,25 +40,62 @@ export class ProductController {
     return this.productService.testv(reference);
   }
 
-  @Post('web')
-  async handleWebhook(@Body() body: any) {
-    console.log('Webhook event data:', body);
-    return { status: 'success' };
-  }
+  // @Post('web')
+  // async handleWebhook(@Body() body: any) {
+  //   console.log('Webhook event data:', body);
+  //   return { status: 'success' };
+  // }
 
   @Get('')
   getUsers() {
     return this.productService.getProducts();
   }
 
+  @Get('collection')
+  getCollections() {
+    return this.productService.getCollections();
+  }
+
+  @Get('top')
+  getTopProducts() {
+    return this.productService.getTopProducts();
+  }
+
   // users/:id
   @Get(':id')
-  async getUserById(@Param('id') id: string) {
+  async getProdById(@Param('id') id: string) {
     const isValid = mongoose.Types.ObjectId.isValid(id);
     if (!isValid) throw new HttpException('User not found', 404);
     const findUser = await this.productService.getProductById(id);
     if (!findUser) throw new HttpException('User not found', 404);
     return findUser;
+  }
+
+  @Get('collection/:id')
+  async getCollById(@Param('id') id: string) {
+    const isValid = mongoose.Types.ObjectId.isValid(id);
+    if (!isValid) throw new HttpException('User not found', 404);
+    const findUser = await this.productService.getCollById(id);
+    if (!findUser) throw new HttpException('User not found', 404);
+    return findUser;
+  }
+
+  @Post('toggle')
+  async toggle(@Body('id') id: string) {
+    const isValid = mongoose.Types.ObjectId.isValid(id);
+    if (!isValid) throw new HttpException('User not found', 404);
+    const findUser = await this.productService.getCollById(id);
+    if (!findUser) throw new HttpException('User not found', 404);
+    return this.productService.toggleArchived(id); // Notice the parameter order, `amount` comes first in your service
+  }
+
+  @Post('stock')
+  async updateStock(@Body('id') id: string, @Body('amount') quantitiy: number) {
+    const isValid = mongoose.Types.ObjectId.isValid(id);
+    if (!isValid) throw new HttpException('User not found', 404);
+    const findUser = await this.productService.updateStock(id, quantitiy);
+    if (!findUser) throw new HttpException('User not found', 404);
+    return this.productService.toggleArchived(id); // Notice the parameter order, `amount` comes first in your service
   }
 
   @Patch(':id')

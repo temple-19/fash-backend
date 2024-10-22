@@ -21,21 +21,22 @@ export class RevenueService {
   // This will run at midnight on the 1st of every month
   @Cron('0 0 1 * *')
   async resetMonthlyRevenue() {
-    const currentYear = new Date().getFullYear();
-    const currentMonth = new Date().toLocaleString('en-US', { month: 'long' });
+    let currentYear = new Date().getFullYear();
+    let currentMonth = new Date().toLocaleString('en-US', { month: 'long' });
 
     // Check if a record for the current month and year exists
-    const existingRevenue = await this.monthlyRevenueModel.findOne({
+    let existingRevenue = await this.monthlyRevenueModel.findOne({
       month: currentMonth,
       year: currentYear,
     });
 
     if (!existingRevenue) {
       // Create a new entry with 0 revenue if it doesn't exist
-      const newRevenue = new this.monthlyRevenueModel({
+      let newRevenue = new this.monthlyRevenueModel({
         month: currentMonth,
         year: currentYear,
         revenue: 0, // Set initial revenue to zero
+        totalOrder: 0,
       });
 
       await newRevenue.save();

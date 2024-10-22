@@ -1,15 +1,21 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { Product, ProductQueryFilter } from 'src/schemas/Product.schema';
+import {
+  Collectionn,
+  Product,
+  ProductQueryFilter,
+} from 'src/schemas/Product.schema';
 import axios from 'axios';
 
 @Injectable()
 export class ProductService {
   constructor(
     @InjectModel(Product.name) private productModel?: Model<Product>,
+    @InjectModel(Product.name) private collectionModel?: Model<Collectionn>,
   ) {}
   private readonly paystackSecretKey = process.env.PAYSTACK_SECRET_KEY;
+
   async test(amount, email: string) {
     console.log('Email:', email); // Verify if email is being passed correctly
     const headers = {
@@ -89,6 +95,44 @@ export class ProductService {
     }
   }
 
+  async createColl(createCollDto) {
+    try {
+      const newColl = new this.collectionModel(createCollDto);
+
+      // Validate the product creation
+      if (!newColl) {
+        throw new Error('Collection creation failed');
+      }
+
+      const savedProduct = await newColl.save();
+
+      return {
+        status: true,
+        data: savedProduct,
+        message: 'Collection created successfully',
+      };
+    } catch (error) {
+      // Handle validation or other errors
+      return {
+        status: false,
+        message: 'Collection creation failed',
+        error: error.message || 'An error occurred during Collection creation',
+      };
+    }
+  }
+
+  async getCollById(id: string) {
+    try {
+      return await this.collectionModel.findById(id);
+    } catch (error) {
+      return {
+        status: false,
+        message: 'Could not fetch Collection',
+        error: error.message || 'Could not fetch Collection',
+      };
+    }
+  }
+
   async getArchived() {
     // Find all products where isArchive is true
     const archivedProducts = await this.productModel.find({ isArchive: true });
@@ -105,8 +149,54 @@ export class ProductService {
     return await this.productModel.find();
   }
 
+  async getCollections() {
+    return await this.collectionModel.find();
+  }
+
+  //just 3
+  async getTopProducts() {
+    try {
+      // Fetch all products and sort them by 'topProducts' in descending order
+      const topProducts = await this.productModel
+        .find()
+        .sort({ topProducts: -1 }) // Sort by 'topProducts' in descending order
+        .limit(3); // Limit the number of results returned (default is 10)
+
+      // Return the sorted array of top products
+      return topProducts;
+    } catch (error) {}
+  }
+
+  async toggleArchived(id: string) {
+    try {
+      // Find the product by its ID
+      const product = await this.productModel.findById(id);
+
+      // Check if the product exists
+      if (!product) {
+        throw new Error('Product not found');
+      }
+
+      // Toggle the isArchived value (if true, set to false, and vice versa)
+      product.isArchived = !product.isArchived;
+
+      // Save the updated product to the database
+      await product.save();
+
+      // Return the updated product
+      return product;
+    } catch (error) {}
+  }
+
   async getProductById(id: string) {
     return await this.productModel.findById(id);
+  }
+
+  async updateStock(id: string, quantity: number) {
+    let product = await this.productModel.findById(id);
+    product.quantity += quantity;
+    await product.save;
+    return { status: true, message: `${quantity} added to stock` };
   }
 
   async updateProduct(id: string, updateProductDto) {

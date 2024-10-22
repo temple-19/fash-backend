@@ -24,15 +24,15 @@ export class OrderController {
     return this.orderService.createOrder(createOrderDto);
   }
 
-  @Post('web')
-  async handleWebhook(@Body() body: any) {
-    console.log('Webhook event data:', body.data.reference.event);
-    //if the body.event = "paymentrequest.success"do this {
-    return this.orderService.webhook(body.data.reference);
-    //}
-    //if body.event = "refund.failed" {update the order status as refund failed}
-    //if body.event = "refund.processed" {update the order status as refund success}
-  }
+  // @Post('web')
+  // async handleWebhook(@Body() body: any) {
+  //   console.log('Webhook event data:', body.data.reference.event);
+  //   //if the body.event = "paymentrequest.success"do this {
+  //   return this.orderService.webhook(body.data.reference);
+  //   //}
+  //   //if body.event = "refund.failed" {update the order status as refund failed}
+  //   //if body.event = "refund.processed" {update the order status as refund success}
+  // }
   // @Post('web')
   // async handleWebhook(@Body() body: any) {
   //   try {
@@ -72,9 +72,9 @@ export class OrderController {
     if (!findUser) throw new HttpException('User not found', 404);
     return findUser;
   }
-  @Get('auth/aaa')
+  @Get('au/rf')
   testv(@Body('reference') reference: string) {
-    return this.orderService.testv(reference);
+    return this.orderService.callbackVerify(reference);
   }
 
   @Patch(':id')

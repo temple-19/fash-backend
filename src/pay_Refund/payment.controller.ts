@@ -10,6 +10,7 @@ export class PaymentController {
     return this.paymentService.refund(body);
   }
 
+  @Get('')
   async Getrefunds() {
     return this.paymentService.getRefunds();
   }

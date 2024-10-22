@@ -41,7 +41,7 @@ export class OrderService {
   ) {}
   private readonly paystackSecretKey = process.env.PAYSTACK_SECRET_KEY;
 
-  async testv(reference: string) {
+  async callbackVerify(reference: string) {
     const headers = {
       Authorization: `Bearer ${this.paystackSecretKey}`,
     };
@@ -89,6 +89,30 @@ export class OrderService {
         order.orderStatus = 'PAID';
         await order.save();
 
+        let currentYear = new Date().getFullYear();
+        let currentMonth = new Date().toLocaleString('en-US', {
+          month: 'long',
+        });
+
+        // Check if a record for the current month and year exists
+        let existingRevenue = await this.revenueModel.findOne({
+          month: currentMonth,
+          year: currentYear,
+        });
+        if (!existingRevenue) {
+          let newRevenue = new this.revenueModel({
+            month: currentMonth,
+            year: currentYear,
+            revenue: order.amount, // Set initial revenue to zero
+            totalOrder: 1,
+          });
+
+          await newRevenue.save();
+        } else {
+          existingRevenue.revenue += order.amount;
+          existingRevenue.totalOrder += 1;
+          await existingRevenue.save();
+        }
         return {
           status: true,
           message: 'Order updated and payment verified successfully',
@@ -108,47 +132,47 @@ export class OrderService {
     }
   }
 
-  async webhook(reference: string) {
-    try {
-      const order = await this.orderModel.findOne({
-        reference: reference,
-      });
-      console.log(order);
-      if (!order) {
-        throw new Error('Order not found');
-      }
+  // async webhook(reference: string) {
+  //   try {
+  //     const order = await this.orderModel.findOne({
+  //       reference: reference,
+  //     });
+  //     console.log(order);
+  //     if (!order) {
+  //       throw new Error('Order not found');
+  //     }
 
-      // Loop through the items in the order and reduce product quantities
-      for (const item of order.items) {
-        const product = await this.productModel.findOne({ id: item.id }); // Fetch the product by id
-        // await this.productModel.findById(item.id);
-        if (!product) {
-          throw new Error(`Product with id ${item.id} not found`);
-        }
+  //     // Loop through the items in the order and reduce product quantities
+  //     for (const item of order.items) {
+  //       const product = await this.productModel.findOne({ id: item.id }); // Fetch the product by id
+  //       // await this.productModel.findById(item.id);
+  //       if (!product) {
+  //         throw new Error(`Product with id ${item.id} not found`);
+  //       }
 
-        // Reduce product's quantity by the quantity in the order item
-        product.quantity -= item.quantity;
+  //       // Reduce product's quantity by the quantity in the order item
+  //       product.quantity -= item.quantity;
 
-        product.topProducts += 1;
+  //       product.topProducts += 1;
 
-        // Ensure the product quantity doesn't go below zero
-        if (product.quantity < 0) {
-          throw new Error(`Not enough stock for product ${item.name}`);
-        }
+  //       // Ensure the product quantity doesn't go below zero
+  //       if (product.quantity < 0) {
+  //         throw new Error(`Not enough stock for product ${item.name}`);
+  //       }
 
-        // Save the updated product back to the database
-        await product.save();
-      }
+  //       // Save the updated product back to the database
+  //       await product.save();
+  //     }
 
-      // Update order status to 'PAID'
-      order.orderStatus = 'PAID';
+  //     // Update order status to 'PAID'
+  //     order.orderStatus = 'PAID';
 
-      //UPDATE REVENUE FOR THE PARTICULAR MONTH
-      await order.save();
-    } catch (error) {
-      throw new Error(`Order update failed: ${error.message}`);
-    }
-  }
+  //     //UPDATE REVENUE FOR THE PARTICULAR MONTH
+  //     await order.save();
+  //   } catch (error) {
+  //     throw new Error(`Order update failed: ${error.message}`);
+  //   }
+  // }
 
   async createOrder(createOrderDto: createOrderDto) {
     try {
@@ -163,8 +187,8 @@ export class OrderService {
       let amount = createOrderDto.amount;
       let data = {
         email,
-        amount: amount * 100, // Convert Naira to kobo
-        callback: 'www.google.com',
+        amount: amount * 100, // Convert Naira to kobo/cent
+        // currency: 'USD', // Specify the currency as USD i guess it will fail because its set to ngn
       };
 
       const response = await axios.post(
