@@ -9,7 +9,7 @@ export class PaymentService {
   constructor(@InjectModel(Order.name) private orderModel?: Model<Order>) {}
   private readonly paystackSecretKey = process.env.PAYSTACK_SECRET_KEY;
 
-  async refund(body) {
+  async refund(req, body) {
     try {
       // Find the order reference in the database
       const refOrder = await this.orderModel.findOne({
@@ -108,7 +108,7 @@ export class PaymentService {
     }
   }
 
-  async getRefunds() {
+  async getRefunds(req) {
     try {
       const headers = {
         Authorization: `Bearer ${this.paystackSecretKey}`,
@@ -128,7 +128,7 @@ export class PaymentService {
         throw new Error('Invalid data format received from Paystack');
       }
 
-      // Trim the refund data to only include essential information
+      // Trim the refund data to only include essential informationn
       const trimmedData = response.data.data.map((refund) => ({
         id: refund.id,
         transaction_reference: refund.transaction_reference,

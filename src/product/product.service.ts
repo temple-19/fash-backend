@@ -133,6 +133,33 @@ export class ProductService {
     }
   }
 
+  async getVolume() {
+    try {
+      let totalSold = 0;
+      let totalStock = 0;
+      let products = await this.productModel.find();
+
+      // Iterate over the products to calculate totalSold and totalStock
+      products.forEach((product) => {
+        totalSold += product.topProducts;
+        totalStock += product.quantity;
+      });
+
+      // Return the calculated totals
+      return {
+        status: true,
+        totalSold,
+        totalStock,
+      };
+    } catch (error) {
+      return {
+        status: false,
+        message: 'Could not fetch Collection',
+        error: error.message || 'Could not fetch Collection',
+      };
+    }
+  }
+
   async getArchived() {
     // Find all products where isArchive is true
     const archivedProducts = await this.productModel.find({ isArchive: true });

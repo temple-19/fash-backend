@@ -56,6 +56,11 @@ export class ProductController {
     return this.productService.getCollections();
   }
 
+  @Get('pcks')
+  getVolume() {
+    return this.productService.getVolume();
+  }
+
   @Get('top')
   getTopProducts() {
     return this.productService.getTopProducts();
