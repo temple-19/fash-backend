@@ -50,4 +50,16 @@ export class RevenueService {
       );
     }
   }
+
+  async getRev() {
+    try {
+      let revenue = await this.monthlyRevenueModel.find();
+      return {
+        staus: true,
+        data: revenue,
+      };
+    } catch (error) {
+      return { status: false, data: error };
+    }
+  }
 }

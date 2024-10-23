@@ -18,16 +18,15 @@ export class ProductController {
   constructor(private productService: ProductService) {}
 
   @Post()
-  @UsePipes(new ValidationPipe())
   createProduct(@Body() createProductDto) {
     console.log(createProductDto);
     return this.productService.createProduct(createProductDto);
   }
 
   @Post('collection')
-  createColl(@Body() createProductDto) {
-    console.log(createProductDto);
-    return this.productService.createColl(createProductDto);
+  createColl(@Body() createCollDto) {
+    console.log(createCollDto);
+    return this.productService.createColl(createCollDto);
   }
 
   @Post('test')
@@ -88,19 +87,20 @@ export class ProductController {
   @Post('toggle')
   async toggle(@Body('id') id: string) {
     const isValid = mongoose.Types.ObjectId.isValid(id);
-    if (!isValid) throw new HttpException('User not found', 404);
-    const findUser = await this.productService.getCollById(id);
-    if (!findUser) throw new HttpException('User not found', 404);
+    if (!isValid) throw new HttpException('product not found', 404);
+    const findUser = await this.productService.getProductById(id);
+    if (!findUser) throw new HttpException('product not found', 404);
     return this.productService.toggleArchived(id); // Notice the parameter order, `amount` comes first in your service
   }
 
   @Post('stock')
-  async updateStock(@Body('id') id: string, @Body('amount') quantitiy: number) {
+  async updateStock(
+    @Body('id') id: string,
+    @Body('quantity') quantitiy: number,
+  ) {
     const isValid = mongoose.Types.ObjectId.isValid(id);
-    if (!isValid) throw new HttpException('User not found', 404);
-    const findUser = await this.productService.updateStock(id, quantitiy);
-    if (!findUser) throw new HttpException('User not found', 404);
-    return this.productService.toggleArchived(id); // Notice the parameter order, `amount` comes first in your service
+    if (!isValid) throw new HttpException('Product not found', 404);
+    return await this.productService.updateStock(id, quantitiy);
   }
 
   @Patch(':id')

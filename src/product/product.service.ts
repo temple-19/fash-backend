@@ -1,18 +1,14 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import {
-  Collectionn,
-  Product,
-  ProductQueryFilter,
-} from 'src/schemas/Product.schema';
+import { Collectionn, Product } from 'src/schemas/Product.schema';
 import axios from 'axios';
 
 @Injectable()
 export class ProductService {
   constructor(
     @InjectModel(Product.name) private productModel?: Model<Product>,
-    @InjectModel(Product.name) private collectionModel?: Model<Collectionn>,
+    @InjectModel(Collectionn.name) private collectionModel?: Model<Collectionn>,
   ) {}
   private readonly paystackSecretKey = process.env.PAYSTACK_SECRET_KEY;
 
@@ -162,13 +158,15 @@ export class ProductService {
 
   async getArchived() {
     // Find all products where isArchive is true
-    const archivedProducts = await this.productModel.find({ isArchive: true });
+    const archivedProducts = await this.productModel.find({ isArchived: true });
     return archivedProducts;
   }
 
   async getNotArchived() {
     // Find all products where isArchive is true
-    const archivedProducts = await this.productModel.find({ isArchive: false });
+    const archivedProducts = await this.productModel.find({
+      isArchived: false,
+    });
     return archivedProducts;
   }
 
@@ -183,15 +181,19 @@ export class ProductService {
   //just 3
   async getTopProducts() {
     try {
-      // Fetch all products and sort them by 'topProducts' in descending order
       const topProducts = await this.productModel
         .find()
-        .sort({ topProducts: -1 }) // Sort by 'topProducts' in descending order
-        .limit(3); // Limit the number of results returned (default is 10)
+        .sort({ topProducts: -1 })
+        .limit(3);
 
-      // Return the sorted array of top products
-      return topProducts;
-    } catch (error) {}
+      return { status: true, message: topProducts };
+    } catch (error) {
+      return {
+        status: false,
+        message: 'Failed to fetch top products',
+        error: error.message || 'An unexpected error occurred',
+      };
+    }
   }
 
   async toggleArchived(id: string) {
@@ -222,7 +224,7 @@ export class ProductService {
   async updateStock(id: string, quantity: number) {
     let product = await this.productModel.findById(id);
     product.quantity += quantity;
-    await product.save;
+    await product.save();
     return { status: true, message: `${quantity} added to stock` };
   }
 

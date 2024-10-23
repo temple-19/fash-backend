@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Revenue, RevenueSchema } from 'src/schemas/Revenue.schema';
 import { RevenueService } from './revenue.service';
+import { RevenueController } from './revenue.controller';
 
 @Module({
   imports: [
@@ -13,5 +14,6 @@ import { RevenueService } from './revenue.service';
     ]),
   ],
   providers: [RevenueService],
+  controllers: [RevenueController],
 })
 export class RevenueModule {}
