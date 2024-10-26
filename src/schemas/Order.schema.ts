@@ -9,6 +9,9 @@ export class Order {
   updatedAt: Date;
 
   @Prop({ required: true })
+  name: string;
+
+  @Prop({ required: true })
   amount: number;
 
   @Prop({ required: true })
