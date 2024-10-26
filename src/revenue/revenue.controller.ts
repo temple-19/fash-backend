@@ -21,4 +21,11 @@ export class RevenueController {
   getUsers() {
     return this.revService.getRev();
   }
+
+  @Post('')
+  async createRev(@Body() createRevDto: any) {
+    // Call the service to save the data
+    const result = await this.revService.createRev(createRevDto);
+    return result;
+  }
 }

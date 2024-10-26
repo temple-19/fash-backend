@@ -18,6 +18,12 @@ export class Product {
   @Prop({ required: true })
   name: string;
 
+  @Prop({ default: '' })
+  description: string;
+
+  @Prop({ default: '' })
+  detail: string;
+
   @Prop({ required: true })
   sex: string; //men or female
 

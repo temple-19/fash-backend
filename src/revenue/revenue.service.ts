@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -60,6 +60,32 @@ export class RevenueService {
       };
     } catch (error) {
       return { status: false, data: error };
+    }
+  }
+
+  async createRev(createRevDto: any) {
+    try {
+      // Create a new document using the provided data
+      const newRev = new this.monthlyRevenueModel(createRevDto);
+
+      // Save the new document to the database
+      const savedRev = await newRev.save();
+
+      return {
+        status: true,
+        data: savedRev,
+        message: 'Review created successfully',
+      };
+    } catch (error) {
+      // Handle any errors during the process
+      throw new HttpException(
+        {
+          status: false,
+          message: 'Failed to create review',
+          error: error.message || 'An unexpected error occurred',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
     }
   }
 }
