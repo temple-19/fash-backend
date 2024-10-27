@@ -249,6 +249,10 @@ export class OrderService {
     return await this.orderModel.findById(id);
   }
 
+  async getOrderByref(id: string) {
+    return await this.orderModel.find({ reference: id });
+  }
+
   async updateOrder(id: string, updateProductDto) {
     return await this.orderModel.findByIdAndUpdate(id, updateProductDto, {
       new: true,

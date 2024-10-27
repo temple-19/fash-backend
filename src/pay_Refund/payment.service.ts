@@ -45,7 +45,7 @@ export class PaymentService {
       );
 
       // Log response for debugging purposes (ensure sensitive data is not logged)
-      console.log('Refund successful:', response.data);
+      // console.log('Refund successful:', response.data);
 
       // Update order status to 'refunded' if successful
       refOrder.orderStatus = 'refunded';

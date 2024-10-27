@@ -9,6 +9,7 @@ import {
   HttpException,
   Patch,
   Delete,
+  Query,
 } from '@nestjs/common';
 import mongoose from 'mongoose';
 import { ProductService } from './product.service';
@@ -16,6 +17,17 @@ import { ProductService } from './product.service';
 @Controller('item')
 export class ProductController {
   constructor(private productService: ProductService) {}
+
+  @Get('search')
+  async searchProducts(@Query('name') name: string) {
+    if (!name) {
+      return {
+        status: false,
+        message: 'Please provide a product name to search for',
+      };
+    }
+    return this.productService.searchProductsByName(name);
+  }
 
   @Post()
   createProduct(@Body() createProductDto) {
@@ -25,7 +37,6 @@ export class ProductController {
 
   @Post('collection')
   createColl(@Body() createCollDto) {
-    console.log(createCollDto);
     return this.productService.createColl(createCollDto);
   }
 
@@ -49,7 +60,10 @@ export class ProductController {
   getUsers() {
     return this.productService.getProducts();
   }
-
+  @Get('/feat')
+  getfeat() {
+    return this.productService.getfeatured();
+  }
   @Get('collection')
   getCollections() {
     return this.productService.getCollections();
@@ -92,7 +106,14 @@ export class ProductController {
     if (!findUser) throw new HttpException('product not found', 404);
     return this.productService.toggleArchived(id); // Notice the parameter order, `amount` comes first in your service
   }
-
+  @Post('toggleft')
+  async toggleft(@Body('id') id: string) {
+    const isValid = mongoose.Types.ObjectId.isValid(id);
+    if (!isValid) throw new HttpException('product not found', 404);
+    const findUser = await this.productService.getProductById(id);
+    if (!findUser) throw new HttpException('product not found', 404);
+    return this.productService.togglefeat(id); // Notice the parameter order, `amount` comes first in your service
+  }
   @Post('stock')
   async updateStock(
     @Body('id') id: string,
@@ -116,11 +137,32 @@ export class ProductController {
     return updatedUser;
   }
 
+  @Patch('collection/:id')
+  @UsePipes(new ValidationPipe())
+  async updateCol(@Param('id') id: string, @Body() updateProductDto) {
+    const isValid = mongoose.Types.ObjectId.isValid(id);
+    if (!isValid) throw new HttpException('Invalid ID', 400);
+    const updatedUser = await this.productService.updateCol(
+      id,
+      updateProductDto,
+    );
+    if (!updatedUser) throw new HttpException('User Not Found', 404);
+    return updatedUser;
+  }
+
   @Delete(':id')
   async deleteUser(@Param('id') id: string) {
     const isValid = mongoose.Types.ObjectId.isValid(id);
     if (!isValid) throw new HttpException('Invalid ID', 400);
     const deletedUser = await this.productService.deleteProduct(id);
+    if (!deletedUser) throw new HttpException('User Not Found', 404);
+    return;
+  }
+  @Delete('collection/:id')
+  async deleteCol(@Param('id') id: string) {
+    const isValid = mongoose.Types.ObjectId.isValid(id);
+    if (!isValid) throw new HttpException('Invalid ID', 400);
+    const deletedUser = await this.productService.deleteCol(id);
     if (!deletedUser) throw new HttpException('User Not Found', 404);
     return;
   }

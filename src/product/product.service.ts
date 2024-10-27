@@ -12,6 +12,35 @@ export class ProductService {
   ) {}
   private readonly paystackSecretKey = process.env.PAYSTACK_SECRET_KEY;
 
+  async searchProductsByName(name: string) {
+    try {
+      // Use a regular expression to search for the product name, case-insensitive
+      let regex = new RegExp(name, 'i'); // 'i' for case-insensitive
+      let products = await this.productModel.find({
+        name: { $regex: regex },
+      });
+      if (products.length === 0) {
+        return {
+          status: true,
+          data: products,
+          message: 'There is no item with that name',
+        };
+      }
+
+      return {
+        status: true,
+        data: products,
+        message: 'Products retrieved successfully',
+      };
+    } catch (error) {
+      return {
+        status: false,
+        message: 'Failed to search products',
+        error: error.message || 'An error occurred while searching products',
+      };
+    }
+  }
+
   async test(amount, email: string) {
     console.log('Email:', email); // Verify if email is being passed correctly
     const headers = {
@@ -19,7 +48,7 @@ export class ProductService {
       'Content-Type': 'application/json',
     };
 
-    const data = {
+    let data = {
       email,
       amount: amount * 100, // Convert Naira to kobo
       callback: 'www.google.com',
@@ -51,7 +80,7 @@ export class ProductService {
     };
 
     try {
-      const response = await axios.get(
+      let response = await axios.get(
         `https://api.paystack.co/transaction/verify/${reference}`,
         { headers },
       );
@@ -93,14 +122,14 @@ export class ProductService {
 
   async createColl(createCollDto) {
     try {
-      const newColl = new this.collectionModel(createCollDto);
-
+      let newColl = new this.collectionModel(createCollDto);
+      console.log(createCollDto);
       // Validate the product creation
       if (!newColl) {
-        throw new Error('Collection creation failed');
+        throw new Error('Collection creation Failed');
       }
 
-      const savedProduct = await newColl.save();
+      let savedProduct = await newColl.save();
 
       return {
         status: true,
@@ -119,12 +148,33 @@ export class ProductService {
 
   async getCollById(id: string) {
     try {
-      return await this.collectionModel.findById(id);
+      // Find the collection by ID
+      const collection = await this.collectionModel.findById(id);
+
+      // Check if the collection exists
+      if (!collection) {
+        throw new Error('Collection not found');
+      }
+
+      // Find products with a name exactly matching the collection's name
+      const colProducts = await this.productModel.find({
+        _collection: collection.name, // Exact match with the collection's name
+      });
+
+      // Return the collection and its associated products
+      return {
+        status: true,
+        message: {
+          collection,
+          colProducts,
+        },
+      };
     } catch (error) {
+      // Handle the error and return a response
       return {
         status: false,
         message: 'Could not fetch Collection',
-        error: error.message || 'Could not fetch Collection',
+        error: error.message || 'An unexpected error occurred',
       };
     }
   }
@@ -153,6 +203,22 @@ export class ProductService {
         message: 'Could not fetch Collection',
         error: error.message || 'Could not fetch Collection',
       };
+    }
+  }
+  async getfeatured() {
+    try {
+      // Find all products where isArchive is true
+      const archivedProducts = await this.productModel.find({ featured: true });
+      return archivedProducts;
+    } catch (error) {
+      console.error(
+        'Error initializing payment:',
+        error.response?.data || error.message,
+      );
+      throw new HttpException(
+        'Unable to initialize payment',
+        HttpStatus.BAD_REQUEST,
+      );
     }
   }
 
@@ -216,6 +282,26 @@ export class ProductService {
       return product;
     } catch (error) {}
   }
+  async togglefeat(id: string) {
+    try {
+      // Find the product by its ID
+      const product = await this.productModel.findById(id);
+
+      // Check if the product exists
+      if (!product) {
+        throw new Error('Product not found');
+      }
+
+      // Toggle the featured value (if true, set to false, and vice versa)
+      product.featured = !product.featured;
+
+      // Save the updated product to the database
+      await product.save();
+
+      // Return the updated product
+      return product;
+    } catch (error) {}
+  }
 
   async getProductById(id: string) {
     return await this.productModel.findById(id);
@@ -233,7 +319,11 @@ export class ProductService {
       new: true,
     });
   }
-
+  async updateCol(id: string, updateProductDto) {
+    return await this.collectionModel.findByIdAndUpdate(id, updateProductDto, {
+      new: true,
+    });
+  }
   async deleteProduct(id: string) {
     try {
       // Check if the product exists
@@ -251,6 +341,27 @@ export class ProductService {
       return {
         status: false,
         message: 'Failed to delete product',
+        error: error.message || 'An unexpected error occurred',
+      };
+    }
+  }
+  async deleteCol(id: string) {
+    try {
+      // Check if the product exists
+      const product = await this.collectionModel.findById(id);
+      if (!product) {
+        return { status: false, message: 'Collection not found' };
+      }
+
+      // Delete the product
+      await this.collectionModel.findByIdAndDelete(id);
+
+      return { status: true, message: 'Collection successfully deleted' };
+    } catch (error) {
+      // Handle unexpected errors
+      return {
+        status: false,
+        message: 'Failed to delete Collection',
         error: error.message || 'An unexpected error occurred',
       };
     }

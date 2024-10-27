@@ -1,6 +1,15 @@
 import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 // import { AuthGuard } from './auth.guard';
+// contact.dto.ts
+export class ContactDto {
+  firstName: string;
+  lastName: string;
+  orderId?: string; // Optional field
+  subject: string;
+  message: string;
+  email: string;
+}
 
 export class autheoObj {
   email: string;
@@ -26,5 +35,10 @@ export class AuthController {
   @Post('refresh')
   resendOTP(@Body() data: autheObj) {
     return this.authService.resendOTP(data);
+  }
+
+  @Post('contact')
+  async submitContactForm(@Body() contactData: ContactDto) {
+    return await this.authService.sendContactForm(contactData);
   }
 }

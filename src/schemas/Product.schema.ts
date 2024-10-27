@@ -82,6 +82,15 @@ export class Collectionn {
 
   @Prop({ default: Date.now })
   updatedAt: Date;
+
+  @Prop({ required: true, default: '' })
+  des: string;
+
+  @Prop({ required: true, default: '' })
+  img_Url: string;
+
+  @Prop({ type: [String], required: false })
+  img_Arr_Url: string[];
 }
 
 export const CollectionnSchema = SchemaFactory.createForClass(Collectionn);

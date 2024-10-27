@@ -4,6 +4,7 @@ import * as speakeasy from 'speakeasy';
 import { InjectModel } from '@nestjs/mongoose';
 import * as jwt from 'jsonwebtoken';
 import { Admin } from 'src/schemas/Admin.schema';
+import { ContactDto } from './auth.controller';
 const nodemailer = require('nodemailer');
 
 @Injectable()
@@ -148,5 +149,72 @@ export class AuthService {
         console.log('Email sent: ' + info.response);
       }
     });
+  }
+
+  async sendEmaildy(to: string, body: string, subject: string) {
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.MAIL_USER,
+        pass: process.env.MAIL_KEY, // Application-specific password
+      },
+    });
+
+    const mailOptions = {
+      from: 'fashattire@gmail.com',
+      to: to,
+      subject: subject,
+      text: body,
+    };
+
+    return new Promise((resolve, reject) => {
+      transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          console.error('Failed to send email:', error);
+          reject(error);
+        } else {
+          console.log('Email sent:', info.response);
+          resolve(info.response);
+        }
+      });
+    });
+  }
+
+  async sendContactForm(contactData: ContactDto) {
+    try {
+      const supportEmail = 'info.fashattire@gmail.com';
+      const { firstName, lastName, orderId, subject, message, email } =
+        contactData;
+
+      // Create a default email body
+      const emailBody = `
+      ${firstName} ${lastName} has submitted a message:
+      \n\n
+      ${message}
+      \n\n
+      ${
+        orderId
+          ? `Reference ID (Order ID): ${orderId}`
+          : 'No Order ID provided.'
+      }
+      \n\n
+      Contact Email: ${email}
+    `;
+
+      // Send the email using the updated sendEmaildy method
+      await this.sendEmaildy(supportEmail, emailBody, subject);
+
+      return {
+        status: true,
+        message: 'Contact form submitted successfully.',
+      };
+    } catch (error) {
+      console.error('Error submitting contact form:', error);
+      return {
+        status: false,
+        message: 'Failed to submit the contact form.',
+        error: error.message || 'An unexpected error occurred.',
+      };
+    }
   }
 }
