@@ -307,6 +307,32 @@ export class ProductService {
     return await this.productModel.findById(id);
   }
 
+  async getAllProductsAndCategories() {
+    try {
+      // Fetch all products
+      const products = await this.productModel.find();
+
+      // Extract unique categories
+      const uniqueCategories = Array.from(
+        new Set(products.map((product) => product.category)),
+      );
+
+      return {
+        status: true,
+        message: ' categories retrieved successfully.',
+        data: {
+          uniqueCategories,
+        },
+      };
+    } catch (error) {
+      return {
+        status: false,
+        message: 'Failed to retrieve products and categories.',
+        error: error.message || 'An unexpected error occurred.',
+      };
+    }
+  }
+
   async updateStock(id: string, quantity: number) {
     let product = await this.productModel.findById(id);
     product.quantity += quantity;

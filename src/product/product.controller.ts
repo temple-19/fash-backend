@@ -60,6 +60,12 @@ export class ProductController {
   getUsers() {
     return this.productService.getProducts();
   }
+
+  @Get('/category')
+  getcats() {
+    return this.productService.getAllProductsAndCategories();
+  }
+
   @Get('/feat')
   getfeat() {
     return this.productService.getfeatured();
