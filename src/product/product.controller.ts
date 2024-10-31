@@ -60,6 +60,10 @@ export class ProductController {
   getUsers() {
     return this.productService.getProducts();
   }
+  @Get('/store')
+  getStoreProducts() {
+    return this.productService.getstoreProducts();
+  }
 
   @Get('/category')
   getcats() {

@@ -66,15 +66,15 @@ export class OrderController {
   // order/:id
   @Get(':id')
   async getUserById(@Param('id') id: string) {
-    const isValid = mongoose.Types.ObjectId.isValid(id);
+    let isValid = mongoose.Types.ObjectId.isValid(id);
     if (!isValid) throw new HttpException('User not found', 404);
-    const findUser = await this.orderService.getOrderById(id);
+    let findUser = await this.orderService.getOrderById(id);
     if (!findUser) throw new HttpException('User not found', 404);
     return findUser;
   }
   @Get('ref/:id')
   async getUserrefId(@Param('id') id: string) {
-    const findUser = await this.orderService.getOrderByref(id);
+    let findUser = await this.orderService.getOrderByref(id);
     if (!findUser) throw new HttpException('User not found', 404);
     return findUser;
   }
@@ -86,21 +86,18 @@ export class OrderController {
   @Patch(':id')
   @UsePipes(new ValidationPipe())
   async updateUser(@Param('id') id: string, @Body() updateProductDto) {
-    const isValid = mongoose.Types.ObjectId.isValid(id);
+    let isValid = mongoose.Types.ObjectId.isValid(id);
     if (!isValid) throw new HttpException('Invalid ID', 400);
-    const updatedUser = await this.orderService.updateOrder(
-      id,
-      updateProductDto,
-    );
+    let updatedUser = await this.orderService.updateOrder(id, updateProductDto);
     if (!updatedUser) throw new HttpException('User Not Found', 404);
     return updatedUser;
   }
 
   @Delete(':id')
   async deleteUser(@Param('id') id: string) {
-    const isValid = mongoose.Types.ObjectId.isValid(id);
+    let isValid = mongoose.Types.ObjectId.isValid(id);
     if (!isValid) throw new HttpException('Invalid ID', 400);
-    const deletedUser = await this.orderService.deleteOrder(id);
+    let deletedUser = await this.orderService.deleteOrder(id);
     if (!deletedUser) throw new HttpException('User Not Found', 404);
     return;
   }

@@ -18,6 +18,7 @@ export class ProductService {
       let regex = new RegExp(name, 'i'); // 'i' for case-insensitive
       let products = await this.productModel.find({
         name: { $regex: regex },
+        isArchived: false,
       });
       if (products.length === 0) {
         return {
@@ -208,7 +209,10 @@ export class ProductService {
   async getfeatured() {
     try {
       // Find all products where isArchive is true
-      const archivedProducts = await this.productModel.find({ featured: true });
+      const archivedProducts = await this.productModel.find({
+        featured: true,
+        isArchived: false,
+      });
       return archivedProducts;
     } catch (error) {
       console.error(
@@ -237,7 +241,12 @@ export class ProductService {
   }
 
   async getProducts() {
+    //admin
     return await this.productModel.find();
+  }
+
+  async getstoreProducts() {
+    return await this.productModel.find({ isArchived: false });
   }
 
   async getCollections() {
