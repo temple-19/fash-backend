@@ -122,16 +122,16 @@ export class ProductController {
     if (!isValid) throw new HttpException('product not found', 404);
     const findUser = await this.productService.getProductById(id);
     if (!findUser) throw new HttpException('product not found', 404);
-    return this.productService.togglefeat(id); // Notice the parameter order, `amount` comes first in your service
+    return this.productService.togglefeat(id); // Notice the parameter order, `amount` comes first in your serviceee
   }
-  @Post('stock')
+  @Patch('stock/:id')
   async updateStock(
-    @Body('id') id: string,
-    @Body('quantity') quantitiy: number,
+    @Param('id') id: string,
+    @Body('quantity') quantity: number,
   ) {
     const isValid = mongoose.Types.ObjectId.isValid(id);
     if (!isValid) throw new HttpException('Product not found', 404);
-    return await this.productService.updateStock(id, quantitiy);
+    return await this.productService.updateStock(id, quantity);
   }
 
   @Patch(':id')

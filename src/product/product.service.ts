@@ -159,7 +159,8 @@ export class ProductService {
 
       // Find products with a name exactly matching the collection's name
       const colProducts = await this.productModel.find({
-        _collection: collection.name, // Exact match with the collection's name
+        _collection: collection.name,
+        isArchived: false, // Exact match with the collection's name
       });
 
       // Return the collection and its associated products
@@ -343,10 +344,19 @@ export class ProductService {
   }
 
   async updateStock(id: string, quantity: number) {
-    let product = await this.productModel.findById(id);
-    product.quantity += quantity;
-    await product.save();
-    return { status: true, message: `${quantity} added to stock` };
+    try {
+      let product = await this.productModel.findById(id);
+      product.quantity += quantity;
+      await product.save();
+      console.log(id, quantity, product.quantity);
+      return { status: true, message: `${quantity} added to stock` };
+    } catch (error) {
+      return {
+        status: false,
+        message: 'Failed to retrieve products',
+        error: error.message || 'An unexpected error occurred.',
+      };
+    }
   }
 
   async updateProduct(id: string, updateProductDto) {
