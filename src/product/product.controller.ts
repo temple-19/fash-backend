@@ -60,6 +60,14 @@ export class ProductController {
   getUsers() {
     return this.productService.getProducts();
   }
+  @Get('/archived')
+  getArchived() {
+    return this.productService.getArchived();
+  }
+  @Get('/narchived')
+  getNotArchived() {
+    return this.productService.getNotArchived();
+  }
   @Get('/store')
   getStoreProducts() {
     return this.productService.getstoreProducts();

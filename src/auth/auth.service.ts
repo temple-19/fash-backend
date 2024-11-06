@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import * as speakeasy from 'speakeasy';
 import { InjectModel } from '@nestjs/mongoose';
@@ -20,6 +20,10 @@ export class AuthService {
 
   async sendOTP(data: { email: string }) {
     try {
+      let admin = await this.adminModel.findOne({ email: data.email });
+      if (!admin) {
+        throw new HttpException('User not found', 404);
+      }
       // Generate OTP
       let OTP: string = this.generateOtp2(
         process.env.DEFAULT_SECRET,
