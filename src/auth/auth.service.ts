@@ -22,7 +22,10 @@ export class AuthService {
     try {
       let admin = await this.adminModel.findOne({ email: data.email });
       if (!admin) {
-        throw new HttpException('User not found', 404);
+        return {
+          status: false,
+          message: 'User not found',
+        };
       }
       // Generate OTP
       let OTP: string = this.generateOtp2(

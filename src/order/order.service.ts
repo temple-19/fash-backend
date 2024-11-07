@@ -242,21 +242,53 @@ export class OrderService {
   }
 
   async getOrders() {
-    return await this.orderModel.find();
+    try {
+      return await this.orderModel.find();
+    } catch (error) {
+      return {
+        status: false,
+        message: 'Failed to get orders',
+        error: error.message || 'An unexpected error occurred',
+      };
+    }
   }
 
   async getOrderById(id: string) {
-    return await this.orderModel.findById(id);
+    try {
+      return await this.orderModel.findById(id);
+    } catch (error) {
+      return {
+        status: false,
+        message: 'Failed to get order',
+        error: error.message || 'An unexpected error occurred',
+      };
+    }
   }
 
   async getOrderByref(id: string) {
-    return await this.orderModel.find({ reference: id });
+    try {
+      return await this.orderModel.find({ reference: id });
+    } catch (error) {
+      return {
+        status: false,
+        message: 'Failed to get order',
+        error: error.message || 'An unexpected error occurred',
+      };
+    }
   }
 
   async updateOrder(id: string, updateProductDto) {
-    return await this.orderModel.findByIdAndUpdate(id, updateProductDto, {
-      new: true,
-    });
+    try {
+      return await this.orderModel.findByIdAndUpdate(id, updateProductDto, {
+        new: true,
+      });
+    } catch (error) {
+      return {
+        status: false,
+        message: 'Failed to update order',
+        error: error.message || 'An unexpected error occurred',
+      };
+    }
   }
 
   async deleteOrder(id: string) {

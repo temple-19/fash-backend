@@ -228,30 +228,72 @@ export class ProductService {
   }
 
   async getArchived() {
-    // Find all products where isArchive is true
-    const archivedProducts = await this.productModel.find({ isArchived: true });
-    return archivedProducts;
+    try {
+      // Find all products where isArchive is true
+      const archivedProducts = await this.productModel.find({
+        isArchived: true,
+      });
+      return archivedProducts;
+    } catch (error) {
+      return {
+        status: false,
+        message: 'Error response',
+        error: error.message || 'error response',
+      };
+    }
   }
 
   async getNotArchived() {
-    // Find all products where isArchive is true
-    const archivedProducts = await this.productModel.find({
-      isArchived: false,
-    });
-    return archivedProducts;
+    try {
+      // Find all products where isArchive is true
+      const archivedProducts = await this.productModel.find({
+        isArchived: false,
+      });
+      return archivedProducts;
+    } catch (error) {
+      return {
+        status: false,
+        message: 'Error response',
+        error: error.message || 'error response',
+      };
+    }
   }
 
   async getProducts() {
-    //admin
-    return await this.productModel.find();
+    try {
+      //admin
+      return await this.productModel.find();
+    } catch (error) {
+      return {
+        status: false,
+        message: 'Error response',
+        error: error.message || 'error response',
+      };
+    }
   }
 
   async getstoreProducts() {
-    return await this.productModel.find({ isArchived: false });
+    try {
+      return await this.productModel.find({ isArchived: false });
+    } catch (error) {
+      return {
+        status: false,
+        message: 'Error response',
+        error: error.message || 'error response',
+      };
+    }
   }
 
   async getCollections() {
-    return await this.collectionModel.find();
+    try {
+      return await this.collectionModel.find();
+    } catch (error) {
+      return {
+        status: false,
+        message: 'Error response',
+        error: error.message || 'error response',
+      };
+    }
   }
 
   //just 3
@@ -310,11 +352,25 @@ export class ProductService {
 
       // Return the updated product
       return product;
-    } catch (error) {}
+    } catch (error) {
+      return {
+        status: false,
+        message: 'Failed to fetch top products',
+        error: error.message || 'An unexpected error occurred',
+      };
+    }
   }
 
   async getProductById(id: string) {
-    return await this.productModel.findById(id);
+    try {
+      return await this.productModel.findById(id);
+    } catch (error) {
+      return {
+        status: false,
+        message: 'Failed to fetch top products',
+        error: error.message || 'An unexpected error occurred',
+      };
+    }
   }
 
   async getAllProductsAndCategories() {
@@ -360,15 +416,37 @@ export class ProductService {
   }
 
   async updateProduct(id: string, updateProductDto) {
-    return await this.productModel.findByIdAndUpdate(id, updateProductDto, {
-      new: true,
-    });
+    try {
+      return await this.productModel.findByIdAndUpdate(id, updateProductDto, {
+        new: true,
+      });
+    } catch (error) {
+      return {
+        status: false,
+        message: 'Failed to retrieve products',
+        error: error.message || 'An unexpected error occurred.',
+      };
+    }
   }
+
   async updateCol(id: string, updateProductDto) {
-    return await this.collectionModel.findByIdAndUpdate(id, updateProductDto, {
-      new: true,
-    });
+    try {
+      return await this.collectionModel.findByIdAndUpdate(
+        id,
+        updateProductDto,
+        {
+          new: true,
+        },
+      );
+    } catch (error) {
+      return {
+        status: false,
+        message: 'Failed to retrieve products',
+        error: error.message || 'An unexpected error occurred.',
+      };
+    }
   }
+
   async deleteProduct(id: string) {
     try {
       // Check if the product exists
@@ -390,6 +468,7 @@ export class ProductService {
       };
     }
   }
+
   async deleteCol(id: string) {
     try {
       // Check if the product exists
