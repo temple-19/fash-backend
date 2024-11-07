@@ -78,7 +78,7 @@ export class OrderController {
     if (!findUser) throw new HttpException('User not found', 404);
     return findUser;
   }
-  @Get('au/rf')
+  @Post('au/rf')
   testv(@Body('reference') reference: string) {
     return this.orderService.callbackVerify(reference);
   }
