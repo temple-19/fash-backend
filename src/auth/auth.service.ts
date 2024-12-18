@@ -5,6 +5,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import * as jwt from 'jsonwebtoken';
 import { Admin } from 'src/schemas/Admin.schema';
 import { ContactDto } from './auth.controller';
+import { Order } from 'src/schemas/Order.schema';
 const nodemailer = require('nodemailer');
 
 @Injectable()
@@ -152,6 +153,71 @@ export class AuthService {
     transporter.sendMail(mailOptions, (error, info) => {
       if (error) {
         console.log(error);
+      } else {
+        console.log('Email sent: ' + info.response);
+      }
+    });
+  }
+
+  async sendEmailOrder(order: Order) {
+    const {
+      name,
+      amount,
+      phone_Number,
+      orderStatus,
+      email,
+      reference,
+      shippingAddress,
+      items,
+    } = order;
+
+    // Destructure shipping address
+    const { street, city, state, postalCode, country } = shippingAddress;
+
+    // Build the order details email content
+    let itemsDetails = items
+      .map(
+        (item) =>
+          `Product: ${item.name}\nQuantity: ${item.quantity}\nPrice: $${item.price}\nColor: ${item.color}\nSize: ${item.size}\n\n`,
+      )
+      .join('');
+
+    const orderDetails = `
+    Order Confirmed!\n\n
+    Order Reference: ${reference}\n
+    Customer Name: ${name}\n
+    Email: ${email}\n
+    Phone Number: ${phone_Number}\n
+    Order Status: ${orderStatus || 'Not specified'}\n\n
+    Shipping Address:\n
+    ${street}, ${city}, ${state}, ${postalCode}, ${country}\n\n
+    Items:\n
+    ${itemsDetails}
+    
+    Total Amount: $${amount}\n
+  `;
+
+    // Create the email transporter
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.MAIL_USER,
+        pass: process.env.MAIL_KEY, // Application-specific password
+      },
+    });
+
+    const mailOptions = {
+      from: 'fashattire@gmail.com',
+      to: 'kaluEdozie@gmail.com',
+      cc: 'notaflowergirlltd@gmail.com',
+      subject: 'Order Confirmed.',
+      text: orderDetails,
+    };
+
+    // Send email
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.log('Error sending email:', error);
       } else {
         console.log('Email sent: ' + info.response);
       }

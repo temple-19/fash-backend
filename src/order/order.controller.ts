@@ -1,6 +1,8 @@
 import {
   Controller,
   Post,
+  Res,
+  Req,
   Body,
   UsePipes,
   ValidationPipe,
@@ -8,55 +10,137 @@ import {
   Param,
   HttpException,
   Patch,
+  Headers,
   Delete,
+  HttpStatus,
 } from '@nestjs/common';
+import { Request, Response } from 'express';
 import mongoose from 'mongoose';
 import { OrderService } from './order.service';
+
+import * as coinbase from 'coinbase-commerce-node';
+
+const { Webhook } = coinbase;
+
+// interface CustomRequest extends Request {
+//   rawBody?: string;
+// }
 
 @Controller('order')
 export class OrderController {
   constructor(private orderService: OrderService) {}
   // make refund route
   //pay route
+
+  @Post('cxp')
+  @UsePipes(new ValidationPipe())
+  createOrderCrypto(@Body() createOrderDto) {
+    return this.orderService.createOrderCrypto(createOrderDto);
+  }
+
   @Post()
   @UsePipes(new ValidationPipe())
   createOrder(@Body() createOrderDto) {
     return this.orderService.createOrder(createOrderDto);
   }
 
-  // @Post('web')
-  // async handleWebhook(@Body() body: any) {
-  //   console.log('Webhook event data:', body.data.reference.event);
-  //   //if the body.event = "paymentrequest.success"do this {
-  //   return this.orderService.webhook(body.data.reference);
-  //   //}
-  //   //if body.event = "refund.failed" {update the order status as refund failed}
-  //   //if body.event = "refund.processed" {update the order status as refund success}
-  // }
-  // @Post('web')
-  // async handleWebhook(@Body() body: any) {
-  //   try {
-  //     // Log the event type and reference for debugging
-  //     const eventType = body.event;
-  //     const reference = body.data.reference;
+  @Post('webhook')
+  async handleWebhook(
+    @Req() req: Request,
+    @Res() res: Response,
+    @Headers('x-cc-webhook-signature') signature: string,
+  ) {
+    const webhookSecret = process.env.COINBASE_COMMERCE_WEBHOOK_SECRET;
 
-  //     console.log('Webhook event:', eventType);
-  //     console.log('Transaction reference:', reference);
+    try {
+      // Verify the event using raw body and signature
+      const event = Webhook.verifyEventBody(
+        req.rawBody,
+        signature,
+        webhookSecret,
+      );
 
-  //     // Handle specific event types
-  //     if (eventType === 'charge.success' || eventType === 'refund.success') {
-  //       // Process the event based on the reference
-  //       await this.orderService.webhook(reference);
-  //       return { status: 'success', message: 'Order status updated successfully' };
-  //     } else {
-  //       // If the event is not handled, return a 200 to prevent retries
-  //       return { status: 'ignored', message: `Event ${eventType} ignored` };
-  //     }
-  //   } catch (error) {
-  //     console.error('Webhook error:', error.message);
-  //     return { status: 'error', message: `Error processing webhook: ${error.message}` };
-  //   }
-  // }
+      // Access the event type
+      if (event.type === 'charge:confirmed') {
+        const amount = event.data.pricing.local.amount;
+        const currency = event.data.pricing.local.currency;
+        const userId = event.data.metadata.user_id;
+
+        // Process the confirmed charge, e.g., update your database
+        console.log(
+          `Charge confirmed for ${amount} ${currency} for user ${userId}`,
+        );
+        //au verify function
+        // if (response.data.data.status === 'success') {
+        // // Retrieve the corresponding order
+        // let order = await this.orderModel.findOne({ reference });
+
+        // if (!order || order.orderStatus == 'PAID') {
+        //   throw new Error('Order not found or paid already');
+        // }
+
+        // // Loop through the items in the order and update each product's stock and topProducts count
+        // for (const item of order.items) {
+        //   const product = await this.productModel.findOne({ _id: item.id });
+
+        //   if (!product) {
+        //     throw new Error(`Product with id ${item.id} not found`);
+        //   }
+
+        //   // Reduce product quantity based on the order item quantity
+        //   product.quantity -= item.quantity;
+
+        //   // Ensure product quantity doesn't go below zero
+        //   if (product.quantity < 0) {
+        //     throw new Error(`Not enough stock for product ${item.name}`);
+        //   }
+
+        //   // Increment topProducts count
+        //   product.topProducts += item.quantity;
+
+        //   // Save the updated product back to the database
+        //   await product.save();
+        // }
+
+        // // Update the order status to 'PAID' and save it
+        // order.orderStatus = 'PAID';
+        // await order.save();
+
+        // let currentYear = new Date().getFullYear();
+        // let currentMonth = new Date().toLocaleString('en-US', {
+        //   month: 'long',
+        // });
+
+        // // Check if a record for the current month and year exists
+        // let existingRevenue = await this.revenueModel.findOne({
+        //   month: currentMonth,
+        //   year: currentYear,
+        // });
+        // if (!existingRevenue) {
+        //   let newRevenue = new this.revenueModel({
+        //     month: currentMonth,
+        //     year: currentYear,
+        //     revenue: order.amount, // Set initial revenue to zero
+        //     totalOrder: 1,
+        //   });
+
+        //   await newRevenue.save();
+
+        // return 'Charge confirmed';
+      } else {
+        // Handle other event types if needed
+        console.log(`Unhandled event type: ${event.type}`);
+        return 'Event received';
+      }
+    } catch (error) {
+      // If verification fails, send an error response
+      console.error('Webhook verification failed', error.message);
+      throw new HttpException(
+        'Webhook verification failed',
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
+  }
 
   @Get()
   getUsers() {

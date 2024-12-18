@@ -2,6 +2,7 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import axios from 'axios';
 import { Model } from 'mongoose';
+import { AuthService } from 'src/auth/auth.service';
 import { Order } from 'src/schemas/Order.schema';
 import { Product } from 'src/schemas/Product.schema';
 import { Revenue } from 'src/schemas/Revenue.schema';
@@ -32,6 +33,8 @@ export class createOrderDto {
 //   return new Promise((resolve) => setTimeout(resolve, ms));
 // }
 
+let adminEmail = 'kaluedozie@gmail.com';
+
 @Injectable()
 export class OrderService {
   constructor(
@@ -40,6 +43,8 @@ export class OrderService {
     @InjectModel(Revenue.name) private revenueModel?: Model<Revenue>,
   ) {}
   private readonly paystackSecretKey = process.env.PAYSTACK_SECRET_KEY;
+  private readonly coinbaseapiKey = process.env.Coinbaseapikey;
+  private authService: AuthService;
 
   async callbackVerify(reference: string) {
     const headers = {
@@ -61,6 +66,8 @@ export class OrderService {
         if (!order || order.orderStatus == 'PAID') {
           throw new Error('Order not found or paid already');
         }
+        //send email
+        await this.authService.sendEmailOrder(order);
 
         // Loop through the items in the order and update each product's stock and topProducts count
         for (const item of order.items) {
@@ -215,6 +222,64 @@ export class OrderService {
       newOrder.reference = response.data.data.reference;
 
       await newOrder.save();
+      return response.data;
+    } catch (error) {
+      // Handle validation or other errors
+      return {
+        status: false,
+        message: 'Order creation failed',
+        error: error.message || 'An error occurred during Order creation',
+      };
+    }
+  }
+
+  async createOrderCrypto(createOrderDto: createOrderDto) {
+    try {
+      const headers = {
+        'Content-Type': 'application/json',
+        'X-CC-Api-Key': `${this.coinbaseapiKey}`,
+      };
+
+      createOrderDto.orderStatus = 'Failed';
+
+      let amount = createOrderDto.amount;
+      let name = 'Order Charge'; // Add meaningful name here
+      let description = 'Payment for Order'; // Add meaningful description here
+
+      const data = {
+        name,
+        description,
+        pricing_type: 'fixed_price',
+        local_price: {
+          amount: amount,
+          currency: 'USD',
+        },
+      };
+
+      const response = await axios.post(
+        'https://api.commerce.coinbase.com/charges/',
+        data,
+        { headers },
+      );
+
+      console.log(response.data);
+      // await delay(2000);
+
+      // Check if Paystack transaction initialization was successful
+      // if (!response.data.data.reference) {
+      //   throw new Error('Failed to retrieve reference from Paystack');
+      // }
+
+      // let newOrder = await new this.orderModel(createOrderDto);
+
+      // // Validate the product creation
+      // if (!newOrder) {
+      //   throw new Error('Order creation failed');
+      // }
+
+      // newOrder.reference = response.data.data.reference;
+
+      // await newOrder.save();
       return response.data;
     } catch (error) {
       // Handle validation or other errors
